@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="brown_primary">#4E240B</color>
+    <color name="brown_dark">#3F1D09</color>
+    <color name="brown_light">#8E5542</color>
+    <color name="background_app">#FAFAF5</color>
+    <color name="cream_accent">#F5F6E4</color>
+    <color name="text_dark">#1C1817</color>
+    <color name="text_secondary">#2A2522</color>
+    <color name="accent_orange">#F59E0B</color>
+    <color name="danger_red">#D32F2F</color>
+</resources>

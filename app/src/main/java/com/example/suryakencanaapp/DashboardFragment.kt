@@ -1,0 +1,181 @@
+package com.example.suryakencanaapp
+
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.suryakencanaapp.adapter.RecentProductAdapter
+import com.example.suryakencanaapp.api.ApiClient
+import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.launch
+
+class DashboardFragment : Fragment() {
+
+    // Variabel UI
+    private lateinit var tvCountProduk: TextView
+    private lateinit var tvCountKlien: TextView
+    private lateinit var tvCountTesti: TextView
+    private lateinit var tvCountAdmin: TextView
+    private lateinit var rvRecentProducts: RecyclerView
+    private lateinit var tvSeeAll: TextView
+    private lateinit var btnQuickProduct: MaterialCardView
+    private lateinit var btnQuickClient: MaterialCardView
+    private lateinit var btnQuickTestimony: MaterialCardView
+    private lateinit var btnQuickVisiMisi: MaterialCardView
+    private lateinit var btnQuickRiwayat: MaterialCardView
+    private lateinit var btnQuickHero: MaterialCardView
+    private lateinit var btnQuickContact: MaterialCardView
+    private lateinit var btnQuickSitus: MaterialCardView
+
+
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate layout XML
+        return inflater.inflate(R.layout.fragment_dashboard, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // 1. INISIALISASI VIEW
+        initViews(view)
+
+        // 2. SETUP NAVIGASI
+        setupActions()
+
+        // 3. AMBIL DATA DARI SERVER
+        fetchDashboardData()
+    }
+
+    private fun initViews(view: View) {
+        // Summary Cards
+        tvCountProduk = view.findViewById(R.id.tvCountProduk)
+        tvCountKlien = view.findViewById(R.id.tvCountKlien)
+        tvCountTesti = view.findViewById(R.id.tvCountTesti)
+        tvCountAdmin = view.findViewById(R.id.tvCountAdmin)
+
+        // Recent Products List
+        rvRecentProducts = view.findViewById(R.id.rvRecentProducts)
+        rvRecentProducts.layoutManager = LinearLayoutManager(context) // List ke bawah
+
+        // Tombol Lihat Semua
+        tvSeeAll = view.findViewById(R.id.tvSeeAllProducts)
+
+        btnQuickProduct = view.findViewById(R.id.btnQuickProduct)
+        btnQuickClient = view.findViewById(R.id.btnQuickClient)
+        btnQuickTestimony = view.findViewById(R.id.btnQuickTestimony)
+        btnQuickContact = view.findViewById(R.id.btnQuickContact)
+        btnQuickVisiMisi = view.findViewById(R.id.btnQuickVisiMisi)
+        btnQuickRiwayat = view.findViewById(R.id.btnQuickRiwayat)
+        btnQuickHero = view.findViewById(R.id.btnQuickHero)
+        btnQuickSitus = view.findViewById(R.id.btnQuickSitus)
+
+    }
+
+    private fun setupActions() {
+        // Klik "Lihat Semua" -> Pindah ke Fragment Produk
+        tvSeeAll.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.nav_produk)
+            } catch (e: Exception) {
+                // Jaga-jaga jika navigasi belum di-setup dengan benar
+                Toast.makeText(context, "Navigasi ke Produk belum diset", Toast.LENGTH_SHORT).show()
+            }
+        }
+        // --- 2. LOGIC AKSES CEPAT ---
+
+        // Klik Produk
+        btnQuickProduct.setOnClickListener {
+            safeNavigate(R.id.nav_produk)
+        }
+
+        // Klik Klien
+        btnQuickClient.setOnClickListener {
+            safeNavigate(R.id.nav_klien)
+        }
+
+        // Klik Testimoni
+        btnQuickTestimony.setOnClickListener {
+            safeNavigate(R.id.nav_testimoni)
+        }
+
+        // Klik Kontak
+        btnQuickContact.setOnClickListener {
+            safeNavigate(R.id.nav_kontak)
+        }
+
+        btnQuickVisiMisi.setOnClickListener {
+            safeNavigate(R.id.nav_visi_misi)
+        }
+
+        btnQuickRiwayat.setOnClickListener {
+            safeNavigate(R.id.nav_riwayat)
+        }
+
+        btnQuickHero.setOnClickListener {
+            safeNavigate(R.id.nav_hero)
+        }
+
+        btnQuickSitus.setOnClickListener {
+            safeNavigate(R.id.nav_pengaturan)
+        }
+    }
+
+    private fun fetchDashboardData() {
+        lifecycleScope.launch {
+            try {
+                // --- A. AMBIL DATA SUMMARY (ANGKA) ---
+                val summaryResponse = ApiClient.instance.getDashboardSummary()
+                if (summaryResponse.isSuccessful && summaryResponse.body() != null) {
+                    val data = summaryResponse.body()!!
+                    tvCountProduk.text = data.totalProducts.toString()
+                    tvCountKlien.text = data.totalClients.toString()
+                    tvCountTesti.text = data.totalTestimony.toString()
+                    tvCountAdmin.text = data.totalAdmins.toString()
+                }
+
+                // --- B. AMBIL DATA PRODUK TERBARU (LIST) ---
+                val recentResponse = ApiClient.instance.getRecentProducts()
+                if (recentResponse.isSuccessful && recentResponse.body() != null) {
+                    val products = recentResponse.body()!!
+
+                    // Pasang ke Adapter
+                    rvRecentProducts.adapter = RecentProductAdapter(products)
+
+                    Log.d("DASHBOARD", "Load ${products.size} produk terbaru berhasil")
+                }
+
+            } catch (e: Exception) {
+                Log.e("DASHBOARD", "Error loading data: ${e.message}")
+                // Tidak perlu Toast error agar user tidak terganggu jika koneksi lambat
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh data setiap kali kembali ke halaman ini
+        // (Misal: habis nambah produk, balik ke dashboard angkanya harus nambah)
+        fetchDashboardData()
+    }
+
+    private fun safeNavigate(navId: Int) {
+        try {
+            findNavController().navigate(navId)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Halaman belum tersedia / ID Navigasi salah", Toast.LENGTH_SHORT).show()
+            Log.e("NAV_ERROR", e.message.toString())
+        }
+    }
+}

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:background="#E0E0E0"> <TextView
+            android:id="@+id/tvNoImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="No Image"
+            android:textColor="#9E9E9E"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/imgProduct"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_margin="8dp"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnEdit"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_circle_white"
+                    android:src="@drawable/edit_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    app:tint="@color/text_dark"
+                    android:padding="6dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <ImageButton
+                    android:id="@+id/btnDelete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_circle_white"
+                    android:src="@drawable/delete_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    app:tint="@color/danger_red"
+                    android:padding="6dp"/>
+            </LinearLayout>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tvProductName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mesin Assembling"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"/>
+
+            <TextView
+                android:id="@+id/tvProductDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Deskripsi singkat produk..."
+                android:textSize="11sp"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tvProductPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Rp 20.000.000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/brown_primary"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

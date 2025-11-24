@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/brown_primary"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:padding="16dp"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <TextView
+        android:id="@+id/tvHeaderName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Halo, Admin"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvHeaderSub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PT. Surya Kencana"
+        android:textColor="#E0E0E0"
+        android:textSize="14sp" />
+
+</LinearLayout>

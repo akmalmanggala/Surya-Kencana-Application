@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/nav_dashboard">
+
+    <fragment
+        android:id="@+id/nav_dashboard"
+        android:name="com.example.suryakencanaapp.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+    <fragment
+        android:id="@+id/nav_produk"
+        android:name="com.example.suryakencanaapp.ProductFragment"
+        android:label="Manajemen Produk"
+        tools:layout="@layout/fragment_product" />
+    <fragment
+        android:id="@+id/nav_klien"
+        android:name="com.example.suryakencanaapp.KlienFragment"
+        android:label="fragment_klien"
+        tools:layout="@layout/fragment_klien" />
+    <fragment
+        android:id="@+id/nav_testimoni"
+        android:name="com.example.suryakencanaapp.TestimoniFragment"
+        android:label="fragment_testimoni"
+        tools:layout="@layout/fragment_testimoni" />
+    <fragment
+        android:id="@+id/nav_visi_misi"
+        android:name="com.example.suryakencanaapp.VisiMisiFragment"
+        android:label="fragment_visi_misi"
+        tools:layout="@layout/fragment_visi_misi" />
+    <fragment
+        android:id="@+id/nav_kontak"
+        android:name="com.example.suryakencanaapp.KontakFragment"
+        android:label="fragment_kontak"
+        tools:layout="@layout/fragment_kontak" />
+    <fragment
+        android:id="@+id/nav_hero"
+        android:name="com.example.suryakencanaapp.HeroFragment"
+        android:label="fragment_hero"
+        tools:layout="@layout/fragment_hero" />
+    <fragment
+        android:id="@+id/nav_riwayat"
+        android:name="com.example.suryakencanaapp.RiwayatFragment"
+        android:label="fragment_riwayat"
+        tools:layout="@layout/fragment_riwayat" />
+    <fragment
+        android:id="@+id/nav_pengaturan"
+        android:name="com.example.suryakencanaapp.PengaturanFragment"
+        android:label="fragment_pengaturan"
+        tools:layout="@layout/fragment_pengaturan" />
+</navigation>

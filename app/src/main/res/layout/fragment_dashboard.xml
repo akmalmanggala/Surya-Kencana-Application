@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_app"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardBackgroundColor="@color/brown_primary"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvLabelProduk"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Produk"
+                        android:textColor="#BCAAA4"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvCountProduk"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tvLabelProduk"
+                        android:text="4"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/package_2_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                        app:tint="#8D6E63" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardBackgroundColor="@color/brown_primary"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvLabelKlien"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Klien"
+                        android:textColor="#BCAAA4"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvCountKlien"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tvLabelKlien"
+                        android:text="4"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/groups_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                        app:tint="#8D6E63" />
+
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardBackgroundColor="@color/brown_primary"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/tvLabelTesti"
+                        android:text="Total Testimoni"
+                        android:textColor="#BCAAA4" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvCountTesti"
+                        android:layout_below="@id/tvLabelTesti"
+                        android:text="5"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/white" android:textSize="24sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:src="@drawable/sms_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                        android:layout_alignParentEnd="true" android:layout_centerVertical="true"
+                        app:tint="#8D6E63" android:layout_width="40dp" android:layout_height="40dp"/>
+
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardBackgroundColor="@color/brown_primary"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/tvLabelAdmin"
+                        android:text="Total Admin"
+                        android:textColor="#BCAAA4" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvCountAdmin"
+                        android:layout_below="@id/tvLabelAdmin"
+                        android:text="2"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/white" android:textSize="24sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:src="@drawable/person_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                        android:layout_alignParentEnd="true" android:layout_centerVertical="true"
+                        app:tint="#8D6E63" android:layout_width="40dp" android:layout_height="40dp"/>
+
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E0E0E0">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+                    <TextView
+                        android:text="Produk Terbaru"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_dark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvSeeAllProducts"
+                        android:text="Lihat Semua"
+                        android:textSize="12sp"
+                        android:textColor="@color/brown_primary"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </RelativeLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecentProducts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_recent_product"
+                    tools:itemCount="3"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E0E0E0">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+                    <TextView
+                        android:text="Testimoni Terbaru"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_dark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:text="Lihat Semua"
+                        android:textSize="12sp"
+                        android:textColor="@color/brown_primary"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/containerRecentTestimonis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:text="Loading data..."
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <TextView
+            android:text="Akses Cepat"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:layout_marginBottom="12dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"> <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnQuickProduct"
+                android:layout_width="100dp"
+                android:layout_height="110dp"
+                android:layout_marginEnd="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="8dp"
+                        app:cardBackgroundColor="#F5F5F5"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/package_2_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                            app:tint="@color/brown_primary" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Produk"
+                        android:textAlignment="center"
+                        android:textColor="@color/text_dark"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickClient"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/groups_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Klien"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickTestimony"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/sms_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Testimoni"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickVisiMisi"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/text_snippet_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Visi &amp; Misi"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickRiwayat"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/date_range_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Riwayat"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickHero"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/imagesmode_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Hero/Banner"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickContact"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/call_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Kontak"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickSitus"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/settings_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Situs"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
