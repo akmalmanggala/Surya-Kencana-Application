@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.HeroAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.utils.FileUtils
@@ -41,7 +42,7 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
     private lateinit var btnSave: MaterialButton
     private lateinit var btnAddImage: LinearLayout
     private lateinit var rvHeroImages: RecyclerView
-
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var heroImageAdapter: HeroAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,7 +62,9 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
         btnSave.setOnClickListener { saveChanges() }
 
         // Fetch Data
-        fetchHeroData()
+        swipeRefresh.setOnRefreshListener {
+            fetchHeroData()
+        }
     }
 
     private fun initViews(view: View) {
@@ -75,9 +78,18 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
         btnSave = view.findViewById(R.id.btnSaveHero)
         btnAddImage = view.findViewById(R.id.btnAddImage)
         rvHeroImages = view.findViewById(R.id.rvHeroImages)
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        swipeRefresh.post {
+            fetchHeroData()
+        }
     }
 
     private fun fetchHeroData() {
+        swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHero()
@@ -103,6 +115,8 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                 }
             } catch (e: Exception) {
                 Log.e("HERO_API", "Error: ${e.message}")
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }

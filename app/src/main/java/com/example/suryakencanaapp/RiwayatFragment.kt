@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.HistoryAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.model.History
@@ -27,13 +28,14 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
     private lateinit var rvHistory: RecyclerView
     private lateinit var historyAdapter: HistoryAdapter
     private lateinit var etSearch: EditText
-
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     // Simpan semua data asli untuk keperluan filter manual
     private var allHistoryList: List<History> = listOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
         rvHistory = view.findViewById(R.id.rvRiwayat)
         rvHistory.layoutManager = LinearLayoutManager(context)
 
@@ -54,6 +56,10 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
         )
         rvHistory.adapter = historyAdapter
 
+        swipeRefresh.setOnRefreshListener {
+            fetchHistories()
+        }
+
         val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddRiwayat)
         btnAdd.setOnClickListener {
             startActivity(Intent(requireContext(), AddHistoryActivity::class.java))
@@ -65,7 +71,16 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
 
     override fun onResume() {
         super.onResume()
-        fetchHistories()
+
+        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
+        if (::historyAdapter.isInitialized && ::etSearch.isInitialized) {
+
+            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
+            val keyword = etSearch.text.toString().trim()
+
+            // 3. Panggil fetch dengan kata kunci tersebut
+            fetchHistories(if (keyword.isNotEmpty()) keyword else null)
+        }
     }
 
     private fun setupSearchListener() {
@@ -92,7 +107,8 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
         }
     }
 
-    private fun fetchHistories() {
+    private fun fetchHistories(keyword: String? = null) {
+        swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 // Panggil API (Tanpa parameter search)
@@ -112,6 +128,8 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
                 }
             } catch (e: Exception) {
                 Log.e("HISTORY", "Error: ${e.message}")
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }

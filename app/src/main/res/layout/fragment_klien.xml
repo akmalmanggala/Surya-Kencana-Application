@@ -1,73 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background_app"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Manajemen Klien"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_dark"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Kelola daftar klien perusahaan Anda"
-        android:textSize="12sp"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <LinearLayout
-        android:id="@+id/actionContainer"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+        android:layout_height="match_parent"
+        android:background="@color/background_app"
+        android:padding="16dp">
 
-        <EditText
-            android:id="@+id/etSearch"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_card_light"
-            android:drawableStart="@drawable/search_24dp_ffffff_fill0_wght400_grad0_opsz24"
-            android:drawablePadding="12dp"
-            android:drawableTint="@color/text_dark"
-            android:hint="Cari klien..."
-            android:paddingHorizontal="16dp"
-            android:textSize="14sp"
-            android:layout_marginEnd="8dp"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddClient"
+        <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="+ Tambah"
-            app:backgroundTint="@color/brown_primary"
-            app:cornerRadius="8dp"
-            android:textSize="12sp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"/>
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="Manajemen Klien"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvClient"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/actionContainer"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/item_client"
-        app:spanCount="2"/> </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kelola daftar klien perusahaan Anda"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/actionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card_light"
+                android:drawableStart="@drawable/search_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                android:drawablePadding="12dp"
+                android:drawableTint="@color/text_dark"
+                android:hint="Cari klien..."
+                android:paddingHorizontal="16dp"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddClient"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="+ Tambah"
+                app:backgroundTint="@color/brown_primary"
+                app:cornerRadius="8dp"
+                android:textSize="12sp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvClient"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/actionContainer"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:listitem="@layout/item_client"
+            app:spanCount="2"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

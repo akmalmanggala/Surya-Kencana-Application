@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.api.ApiClient
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -20,6 +21,8 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
     private lateinit var etAddress: TextInputEditText
     private lateinit var etMaps: TextInputEditText
     private lateinit var btnSave: MaterialButton
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -30,6 +33,11 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
         etAddress = view.findViewById(R.id.etAddress)
         etMaps = view.findViewById(R.id.etMaps)
         btnSave = view.findViewById(R.id.btnSaveContact)
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+
+        swipeRefresh.setOnRefreshListener {
+            fetchContactData()
+        }
 
         // 2. Button Save Listener
         btnSave.setOnClickListener {
@@ -40,7 +48,15 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
         fetchContactData()
     }
 
+    override fun onResume() {
+        super.onResume()
+        swipeRefresh.post {
+            fetchContactData()
+        }
+    }
+
     private fun fetchContactData() {
+        swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 // Panggil API
@@ -65,6 +81,8 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
             } catch (e: Exception) {
                 Log.e("CONTACT_API", "Error: ${e.message}")
                 Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }

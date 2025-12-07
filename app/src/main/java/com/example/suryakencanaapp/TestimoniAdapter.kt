@@ -1,4 +1,4 @@
-package com.example.suryakencanaapp
+package com.example.suryakencanaapp.adapter
 
 import android.content.Intent
 import android.view.LayoutInflater
@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.suryakencanaapp.EditTestimoniActivity
+import com.example.suryakencanaapp.R
 import com.example.suryakencanaapp.model.Testimoni
 
 // LIHAT PERUBAHAN DI SINI (Constructor tambah parameter onDeleteClick)

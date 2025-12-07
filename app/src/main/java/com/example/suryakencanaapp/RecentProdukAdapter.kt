@@ -42,15 +42,12 @@ class RecentProdukAdapter(
         holder.tvPrice.text = formatRupiah.format(priceDouble)
 
         // Load Gambar (Ganti URL CDN sesuai milik Anda)
-        val cdnBaseUrl = "http://10.0.2.2:8000/storage/"
-
         if (!product.imageUrl.isNullOrEmpty()) {
-            val fullUrl = if (product.imageUrl.startsWith("http")) product.imageUrl else cdnBaseUrl + product.imageUrl
-
+            // LANGSUNG LOAD SAJA (Asumsi Backend selalu kirim https://...)
             Glide.with(holder.itemView.context)
-                .load(fullUrl)
+                .load(product.imageUrl)
                 .centerCrop()
-                .placeholder(R.drawable.package_2_24dp_ffffff_fill0_wght400_grad0_opsz24) // Placeholder saat loading
+                .placeholder(R.drawable.package_2_24dp_ffffff_fill0_wght400_grad0_opsz24)
                 .into(holder.img)
         }
     }

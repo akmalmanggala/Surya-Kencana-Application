@@ -37,8 +37,6 @@ class ClientAdapter(
         holder.tvName.text = data.clientName
         holder.tvInstitution.text = data.institution ?: "-"
 
-        // LOAD GAMBAR PAKE GLIDE
-        // Karena 'logo_url' sudah https://..., langsung pakai saja
         if (!data.logoUrl.isNullOrEmpty()) {
             Glide.with(holder.itemView.context)
                 .load(data.logoUrl)

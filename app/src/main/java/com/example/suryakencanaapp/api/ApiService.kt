@@ -3,7 +3,7 @@ package com.example.suryakencanaapp.api
 import com.example.suryakencanaapp.model.Admin
 import com.example.suryakencanaapp.model.Client
 import com.example.suryakencanaapp.model.Contact
-import com.example.suryakencanaapp.model.DashboardSummary
+import com.example.suryakencanaapp.model.Dashboard
 import com.example.suryakencanaapp.model.Hero
 import com.example.suryakencanaapp.model.History
 import com.example.suryakencanaapp.model.LoginRequest
@@ -37,12 +37,8 @@ interface ApiService {
     // Kata kunci 'suspend' memungkinkan fungsi ini dipanggil di background thread (Coroutines)
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @GET("dashboard-summary")
-    suspend fun getDashboardSummary(): Response<DashboardSummary>
-    @GET("products/recent")
-    suspend fun getRecentProducts(): Response<List<Product>>
-    @GET("testimonials/recent")
-    suspend fun getRecentTestimonies(): Response<List<Testimoni>>
+    @GET("dashboard") // Ganti sesuai route baru di Laravel Anda
+    suspend fun getDashboardData(): Response<Dashboard>
 
     @GET("product")
     suspend fun getProducts(
@@ -82,6 +78,7 @@ interface ApiService {
     // DELETE PRODUK
     @DELETE("product/{id}")
     suspend fun deleteProduct(
+        @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<Void>
 

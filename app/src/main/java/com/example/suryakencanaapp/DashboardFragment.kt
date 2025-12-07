@@ -16,8 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.suryakencanaapp.adapter.RecentProdukAdapter
 import com.example.suryakencanaapp.adapter.RecentTestiAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.model.Dashboard
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.launch
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class DashboardFragment : Fragment() {
 
@@ -41,6 +43,8 @@ class DashboardFragment : Fragment() {
     private lateinit var btnQuickContact: MaterialCardView
     private lateinit var btnQuickSitus: MaterialCardView
     private lateinit var btnQuickAdmin: MaterialCardView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private var cachedDashboardData: Dashboard? = null
 
 
 
@@ -60,14 +64,26 @@ class DashboardFragment : Fragment() {
 
         checkUserRole()
 
+        if (cachedDashboardData != null) {
+            // JIKA ADA: Pakai data lama (Instant Load!)
+            applyDataToView(cachedDashboardData!!)
+        } else {
+            // JIKA KOSONG: Baru ambil dari Internet
+            fetchDashboardData()
+        }
+
+        swipeRefresh.setOnRefreshListener {
+            // Paksa ambil data baru dari server
+            fetchDashboardData()
+        }
+
         // 2. SETUP NAVIGASI
         setupActions()
-
-        // 3. AMBIL DATA DARI SERVER
-        fetchDashboardData()
     }
 
     private fun initViews(view: View) {
+
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
         // Summary Cards
         tvCountProduk = view.findViewById(R.id.tvCountProduk)
         tvCountKlien = view.findViewById(R.id.tvCountKlien)
@@ -180,52 +196,35 @@ class DashboardFragment : Fragment() {
     private fun fetchDashboardData() {
         lifecycleScope.launch {
             try {
-                // --- A. AMBIL DATA SUMMARY (ANGKA) ---
-                val summaryResponse = ApiClient.instance.getDashboardSummary()
-                if (summaryResponse.isSuccessful && summaryResponse.body() != null) {
-                    val data = summaryResponse.body()!!
-                    tvCountProduk.text = data.totalProducts.toString()
-                    tvCountKlien.text = data.totalClients.toString()
-                    tvCountTesti.text = data.totalTestimony.toString()
-                    tvCountAdmin.text = data.totalAdmins.toString()
+                val response = ApiClient.instance.getDashboardData()
+                if (response.isSuccessful && response.body() != null) {
+                    val data = response.body()!!
+
+                    // Simpan ke cache agar tidak perlu download lagi nanti
+                    cachedDashboardData = data
+
+                    // Tampilkan ke layar
+                    applyDataToView(data)
                 }
-
-                // --- B. AMBIL DATA PRODUK TERBARU (LIST) ---
-                val recentResponse = ApiClient.instance.getRecentProducts()
-                if (recentResponse.isSuccessful && recentResponse.body() != null) {
-                    val products = recentResponse.body()!!
-
-                    // --- UBAH JADI SEPERTI INI ---
-                    // Jangan pakai 'rvRecentProducts.adapter = ...' lagi
-                    recentProductAdapter.updateData(products)
-                    // -----------------------------
-
-                    Log.d("DASHBOARD", "Load ${products.size} produk terbaru berhasil")
-                }
-
-                // --- LOAD TESTIMONI ---
-                val responseTesti = ApiClient.instance.getRecentTestimonies()
-
-                if (responseTesti.isSuccessful && responseTesti.body() != null) {
-                    val listData = responseTesti.body()!!
-
-                    recentTestiAdapter.updateData(listData)
-
-                    Log.d("DASHBOARD", "Load ${listData.size} testi berhasil")
-                }
-
             } catch (e: Exception) {
-                Log.e("DASHBOARD", "Error loading data: ${e.message}")
-                // Tidak perlu Toast error agar user tidak terganggu jika koneksi lambat
+                Log.e("DASHBOARD", "Error: ${e.message}")
+            } finally {
+                // 4. PENTING: Matikan animasi loading setelah selesai
+                swipeRefresh.isRefreshing = false
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Refresh data setiap kali kembali ke halaman ini
-        // (Misal: habis nambah produk, balik ke dashboard angkanya harus nambah)
-        fetchDashboardData()
+    private fun applyDataToView(data: Dashboard) {
+        // Summary
+        tvCountProduk.text = data.summary.totalProducts.toString()
+        tvCountKlien.text = data.summary.totalClients.toString()
+        tvCountTesti.text = data.summary.totalTestimony.toString()
+        tvCountAdmin.text = data.summary.totalAdmins.toString()
+
+        // List
+        recentProductAdapter.updateData(data.recentProducts)
+        recentTestiAdapter.updateData(data.recentTestimonials)
     }
 
     private fun safeNavigate(navId: Int) {

@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.MisiAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.google.android.material.button.MaterialButton
@@ -25,6 +26,7 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
     private lateinit var btnSave: MaterialButton
 
     private lateinit var misiAdapter: MisiAdapter
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -34,6 +36,7 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
         rvMisi = view.findViewById(R.id.rvMisi)
         btnAddMisiPoint = view.findViewById(R.id.btnAddMisiPoint)
         btnSave = view.findViewById(R.id.btnSaveVisiMisi)
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
 
         // 2. Setup RecyclerView Misi
         rvMisi.layoutManager = LinearLayoutManager(context)
@@ -50,12 +53,13 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
         btnSave.setOnClickListener {
             saveData()
         }
-
-        // 5. Ambil Data dari Server
-        fetchData()
+        swipeRefresh.setOnRefreshListener {
+            fetchData()
+        }
     }
 
     private fun fetchData() {
+        swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getVisiMisi()
@@ -92,10 +96,18 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
                 }
             } catch (e: Exception) {
                 Log.e("VISIMISI", "Error: ${e.message}")
-            }
+            }finally {
+                swipeRefresh.isRefreshing = false
+                }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        swipeRefresh.post {
+            fetchData()
+        }
+    }
     private fun saveData() {
         val visi = etVisi.text.toString().trim()
 

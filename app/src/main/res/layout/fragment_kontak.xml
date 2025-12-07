@@ -1,168 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background_app"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Manajemen Informasi Kontak"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_dark"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Perbarui informasi kontak perusahaan Anda"
-        android:textSize="12sp"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <androidx.core.widget.NestedScrollView
+    android:layout_height="match_parent">
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="match_parent"
+        android:background="@color/background_app"
+        android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="20dp">
+            android:text="Manajemen Informasi Kontak"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:text="Email"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Perbarui informasi kontak perusahaan Anda"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="parent"/>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/brown_primary"
-                app:boxStrokeWidth="1dp"
-                app:boxBackgroundColor="@color/white"
-                app:hintEnabled="false">
+                android:orientation="vertical"
+                android:paddingBottom="20dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmail"
+                <TextView
+                    android:text="Email"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textEmailAddress"
-                    android:hint="Contoh: suryakencana@gmail.com"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginBottom="16dp"
+                    app:boxStrokeColor="@color/brown_primary"
+                    app:boxStrokeWidth="1dp"
+                    app:boxBackgroundColor="@color/white"
+                    app:hintEnabled="false">
 
-            <TextView
-                android:text="Nomor WhatsApp"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"
+                        android:hint="Contoh: suryakencana@gmail.com"/>
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/brown_primary"
-                app:boxStrokeWidth="1dp"
-                app:boxBackgroundColor="@color/white"
-                app:hintEnabled="false">
+                <TextView
+                    android:text="Nomor WhatsApp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etWhatsapp"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone"
-                    android:hint="Contoh: 088902947368"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginBottom="16dp"
+                    app:boxStrokeColor="@color/brown_primary"
+                    app:boxStrokeWidth="1dp"
+                    app:boxBackgroundColor="@color/white"
+                    app:hintEnabled="false">
 
-            <TextView
-                android:text="Alamat"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etWhatsapp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="phone"
+                        android:hint="Contoh: 088902947368"/>
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/brown_primary"
-                app:boxStrokeWidth="1dp"
-                app:boxBackgroundColor="@color/white"
-                app:hintEnabled="false">
+                <TextView
+                    android:text="Alamat"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAddress"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:minLines="3"
-                    android:gravity="top|start"
-                    android:hint="Jl Mulyosari, Tumut, Sumbersari..."/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginBottom="16dp"
+                    app:boxStrokeColor="@color/brown_primary"
+                    app:boxStrokeWidth="1dp"
+                    app:boxBackgroundColor="@color/white"
+                    app:hintEnabled="false">
 
-            <TextView
-                android:text="Tautan Maps"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
+                        android:gravity="top|start"
+                        android:hint="Jl Mulyosari, Tumut, Sumbersari..."/>
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                app:boxStrokeColor="@color/brown_primary"
-                app:boxStrokeWidth="1dp"
-                app:boxBackgroundColor="@color/white"
-                app:hintEnabled="false">
+                <TextView
+                    android:text="Tautan Maps"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etMaps"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textUri"
-                    android:hint="https://maps.app.goo.gl/..."/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginBottom="32dp"
+                    app:boxStrokeColor="@color/brown_primary"
+                    app:boxStrokeWidth="1dp"
+                    app:boxBackgroundColor="@color/white"
+                    app:hintEnabled="false">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveContact"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Simpan Perubahan"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/brown_primary"
-                app:cornerRadius="8dp"/>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMaps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri"
+                        android:hint="https://maps.app.goo.gl/..."/>
+                </com.google.android.material.textfield.TextInputLayout>
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveContact"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Simpan Perubahan"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@color/brown_primary"
+                    app:cornerRadius="8dp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -1,6 +1,7 @@
 package com.example.suryakencanaapp
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -20,16 +21,23 @@ import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class ProductFragment : Fragment(R.layout.fragment_product) {
 
     private lateinit var productAdapter: ProdukAdapter
     private lateinit var rvProducts: RecyclerView
     private lateinit var etSearch: EditText
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private var searchJob: Job? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            fetchProducts()
+        }
 
         // 1. Cek Apakah View Ditemukan (Mencegah NullPointer)
         val rvCheck = view.findViewById<RecyclerView>(R.id.rvProducts)
@@ -64,9 +72,15 @@ class ProductFragment : Fragment(R.layout.fragment_product) {
 
     override fun onResume() {
         super.onResume()
-        // Panggil fetch hanya jika adapter sudah siap
-        if (::productAdapter.isInitialized) {
-            fetchProducts()
+
+        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
+        if (::productAdapter.isInitialized && ::etSearch.isInitialized) {
+
+            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
+            val keyword = etSearch.text.toString().trim()
+
+            // 3. Panggil fetch dengan kata kunci tersebut
+            fetchProducts(if (keyword.isNotEmpty()) keyword else null)
         }
     }
 
@@ -87,13 +101,11 @@ class ProductFragment : Fragment(R.layout.fragment_product) {
     }
 
     private fun fetchProducts(keyword: String? = null) {
-        Log.d("DEBUG_PRODUK", "Memanggil API dengan keyword: $keyword")
-
         // PENGAMAN: Jangan lanjut jika adapter belum siap
-        if (!::productAdapter.isInitialized) {
-            Log.e("DEBUG_PRODUK", "Adapter belum siap, batalkan fetch.")
-            return
-        }
+        if (!::productAdapter.isInitialized) return
+
+        // 4. Tampilkan Loading (Pakai animasi SwipeRefresh)
+        swipeRefresh.isRefreshing = true
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -101,16 +113,16 @@ class ProductFragment : Fragment(R.layout.fragment_product) {
 
                 if (response.isSuccessful && response.body() != null) {
                     val products = response.body()!!
-                    Log.d("DEBUG_PRODUK", "Data masuk: ${products.size} item")
-
                     val sortedProduct = products.sortedByDescending { it.id }
                     productAdapter.updateData(sortedProduct)
-
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error: ${e.message}")
+            } finally {
+                // 5. Matikan Loading (PENTING!)
+                swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -126,14 +138,22 @@ class ProductFragment : Fragment(R.layout.fragment_product) {
     }
 
     private fun deleteProductApi(id: Int) {
-        viewLifecycleOwner.lifecycleScope.launch {
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "")
+
+        if (token.isNullOrEmpty()) return
+
+        lifecycleScope.launch {
             try {
-                val response = ApiClient.instance.deleteProduct(id)
+                // UPDATE: Kirim token ke API
+                val response = ApiClient.instance.deleteProduct("Bearer $token", id)
+
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Berhasil dihapus", Toast.LENGTH_SHORT).show()
-                    fetchProducts()
+                    Toast.makeText(context, "Produk berhasil dihapus", Toast.LENGTH_SHORT).show()
+                    fetchProducts() // Refresh list otomatis
                 } else {
-                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    val errorMsg = response.errorBody()?.string()
+                    Toast.makeText(context, "Gagal: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()

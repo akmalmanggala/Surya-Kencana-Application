@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.utils.FileUtils
@@ -56,6 +57,8 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
     private lateinit var imgUploadIcon: ImageView
     private lateinit var tvUploadInfo: TextView
     private lateinit var btnSave: MaterialButton
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+
 
     // Data File
     private var selectedLogoFile: File? = null
@@ -67,6 +70,10 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
         // Listeners
         btnUploadLogo.setOnClickListener { openGallery() }
         btnSave.setOnClickListener { saveSettings() }
+
+        swipeRefresh.setOnRefreshListener {
+            fetchSettings()
+        }
 
         // Fetch Data
         fetchSettings()
@@ -100,10 +107,20 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
         imgUploadIcon = view.findViewById(R.id.imgUploadIcon)
         tvUploadInfo = view.findViewById(R.id.tvUploadInfo)
         btnSave = view.findViewById(R.id.btnSaveSettings)
+
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        swipeRefresh.post {
+            fetchSettings()
+        }
     }
 
     // --- GET DATA ---
     private fun fetchSettings() {
+        swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getSiteSettings()
@@ -144,6 +161,8 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
                 }
             } catch (e: Exception) {
                 Log.e("SETTINGS_API", "Error: ${e.message}")
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }

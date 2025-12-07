@@ -1,6 +1,5 @@
 package com.example.suryakencanaapp
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -14,9 +13,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.AdminAdapter
 import com.example.suryakencanaapp.api.ApiClient
-import com.example.suryakencanaapp.model.Admin
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -28,6 +27,8 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
     private lateinit var rvAdmin: RecyclerView
     private lateinit var adminAdapter: AdminAdapter
     private lateinit var etSearch: EditText
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+
     private var searchJob: Job? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -35,7 +36,10 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
 
         rvAdmin = view.findViewById(R.id.rvAdmin)
         rvAdmin.layoutManager = LinearLayoutManager(context)
-
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            fetchAdmins()
+        }
         // Init Adapter
         adminAdapter = AdminAdapter(listOf()) {
         }
@@ -56,7 +60,16 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
 
     override fun onResume() {
         super.onResume()
-        fetchAdmins()
+
+        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
+        if (::adminAdapter.isInitialized && ::etSearch.isInitialized) {
+
+            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
+            val keyword = etSearch.text.toString().trim()
+
+            // 3. Panggil fetch dengan kata kunci tersebut
+            fetchAdmins(if (keyword.isNotEmpty()) keyword else null)
+        }
     }
 
     private fun setupSearchListener() {
@@ -84,6 +97,7 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
     }
 
     private fun fetchAdmins(keyword: String? = null) {
+        swipeRefresh.isRefreshing = true
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
@@ -101,6 +115,8 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
                 }
             } catch (e: Exception) {
                 Log.e("ADMIN_API", "Error: ${e.message}")
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }
