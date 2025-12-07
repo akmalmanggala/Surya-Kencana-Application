@@ -96,14 +96,6 @@
             app:backgroundTint="@color/brown_primary"
             app:cornerRadius="8dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Untuk Admin: username=admin, password=admin123\nUntuk Super Admin: username=superadmin, password=superadmin123"
-            android:textColor="@color/text_secondary"
-            android:textSize="11sp" />
 
     </LinearLayout>
 

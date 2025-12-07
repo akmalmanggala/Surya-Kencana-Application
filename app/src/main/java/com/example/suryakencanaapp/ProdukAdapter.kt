@@ -1,6 +1,7 @@
 package com.example.suryakencanaapp.adapter
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,16 +10,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.suryakencanaapp.EditProdukActivity
 import com.example.suryakencanaapp.R
 import com.example.suryakencanaapp.model.Product
 import java.text.NumberFormat
 import java.util.Locale
 
-class ProductAdapter(
+class ProdukAdapter(
     private var productList: MutableList<Product>,
     private val onDeleteClick: (Product) -> Unit, // Callback klik hapus
     private val onEditClick: (Product) -> Unit    // Callback klik edit
-) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+) : RecyclerView.Adapter<ProdukAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvName: TextView = itemView.findViewById(R.id.tvProductName)
@@ -61,7 +63,18 @@ class ProductAdapter(
         }
 
         holder.btnDelete.setOnClickListener { onDeleteClick(product) }
-        holder.btnEdit.setOnClickListener { onEditClick(product) }
+        holder.btnEdit.setOnClickListener {
+            // onEditClick(product) <-- Hapus atau ganti dengan kode di bawah ini:
+
+            val intent = Intent(holder.itemView.context, EditProdukActivity::class.java)
+            intent.putExtra("ID", product.id)
+            intent.putExtra("NAME", product.name)
+            intent.putExtra("PRICE", product.price) // Kirim harga mentah (string)
+            intent.putExtra("DESC", product.description)
+            intent.putExtra("IMAGE_URL", product.imageUrl)
+
+            holder.itemView.context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = productList.size

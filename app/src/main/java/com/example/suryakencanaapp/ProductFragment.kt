@@ -5,16 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.suryakencanaapp.adapter.ProductAdapter
+import com.example.suryakencanaapp.adapter.ProdukAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.model.Product
 import com.google.android.material.button.MaterialButton
@@ -22,145 +21,121 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class ProductFragment : Fragment() {
+class ProductFragment : Fragment(R.layout.fragment_product) {
 
-    private lateinit var productAdapter: ProductAdapter
+    private lateinit var productAdapter: ProdukAdapter
     private lateinit var rvProducts: RecyclerView
     private lateinit var etSearch: EditText
-
     private var searchJob: Job? = null
-
-    // Simpan list original untuk backup saat search kosong
-    private var allProducts = listOf<Product>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_product, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Setup RecyclerView
-        rvProducts = view.findViewById(R.id.rvProducts)
-        rvProducts.layoutManager = GridLayoutManager(context, 2) // Grid 2 Kolom
+        // 1. Cek Apakah View Ditemukan (Mencegah NullPointer)
+        val rvCheck = view.findViewById<RecyclerView>(R.id.rvProducts)
+        if (rvCheck == null) {
+            Log.e("PRODUK_ERROR", "RecyclerView dengan ID rvProducts TIDAK DITEMUKAN di XML!")
+            return // Stop agar tidak crash
+        }
+        rvProducts = rvCheck
 
-        productAdapter = ProductAdapter(
+        // Setup RecyclerView
+        rvProducts.layoutManager = GridLayoutManager(context, 2)
+
+        // 2. INIT ADAPTER (Wajib di sini)
+        productAdapter = ProdukAdapter(
             mutableListOf(),
             onDeleteClick = { product -> confirmDelete(product) },
             onEditClick = { product ->
                 Toast.makeText(context, "Edit ${product.name}", Toast.LENGTH_SHORT).show()
-                // Nanti kita arahkan ke halaman EditActivity di sini
             }
         )
         rvProducts.adapter = productAdapter
 
-        // 2. Setup Tombol Tambah
+        // Init Komponen Lain
         val btnAddProduct = view.findViewById<MaterialButton>(R.id.btnAddProduct)
         btnAddProduct.setOnClickListener {
             startActivity(Intent(requireContext(), AddProductActivity::class.java))
         }
 
-        // 3. Setup Fitur Search
         etSearch = view.findViewById(R.id.etSearch)
+        setupSearchListener()
+    }
 
+    override fun onResume() {
+        super.onResume()
+        // Panggil fetch hanya jika adapter sudah siap
+        if (::productAdapter.isInitialized) {
+            fetchProducts()
+        }
+    }
+
+    private fun setupSearchListener() {
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
             override fun afterTextChanged(s: Editable?) {
-                // 1. Batalkan request sebelumnya jika user masih mengetik
                 searchJob?.cancel()
-
-                // 2. Mulai timer baru
-                searchJob = lifecycleScope.launch {
-                    // Tunggu 500ms (setengah detik) sebelum request
+                // Gunakan viewLifecycleOwner agar aman saat fragment dihancurkan
+                searchJob = viewLifecycleOwner.lifecycleScope.launch {
                     delay(800)
-
                     val keyword = s.toString().trim()
-
-                    if (keyword.isNotEmpty()) {
-                        // Jika ada kata kunci, cari ke API
-                        fetchProducts(keyword)
-                    } else {
-                        // Jika kosong, panggil fetchProducts() tanpa param (ambil semua)
-                        fetchProducts(null)
-                    }
+                    if (keyword.isNotEmpty()) fetchProducts(keyword) else fetchProducts(null)
                 }
             }
         })
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Panggil data setiap kali fragment muncul (agar update setelah tambah data)
-        fetchProducts()
-    }
-
-    // --- FUNGSI API GET PRODUCTS ---
     private fun fetchProducts(keyword: String? = null) {
-        lifecycleScope.launch {
+        Log.d("DEBUG_PRODUK", "Memanggil API dengan keyword: $keyword")
+
+        // PENGAMAN: Jangan lanjut jika adapter belum siap
+        if (!::productAdapter.isInitialized) {
+            Log.e("DEBUG_PRODUK", "Adapter belum siap, batalkan fetch.")
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getProducts(keyword)
 
                 if (response.isSuccessful && response.body() != null) {
-                    // KARENA LANGSUNG LIST, TIDAK PERLU .data
                     val products = response.body()!!
+                    Log.d("DEBUG_PRODUK", "Data masuk: ${products.size} item")
 
-                    // Update List
-                    allProducts = products
-                    productAdapter.updateData(products)
+                    val sortedProduct = products.sortedByDescending { it.id }
+                    productAdapter.updateData(sortedProduct)
 
-                    // Logging Sukses
-                    android.util.Log.d("API_SUCCESS", "Data masuk: ${products.size} produk")
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("API_ERROR", "Error: ${e.message}")
-                e.printStackTrace()
+                Log.e("API_ERROR", "Error: ${e.message}")
             }
         }
     }
 
-    // --- FUNGSI CONFIRM & DELETE ---
+    // --- FUNGSI DELETE (Tetap Sama) ---
     private fun confirmDelete(product: Product) {
         AlertDialog.Builder(context)
             .setTitle("Hapus Produk")
-            .setMessage("Anda yakin ingin menghapus ${product.name}?")
-            .setPositiveButton("Hapus") { _, _ ->
-                deleteProductApi(product.id)
-            }
+            .setMessage("Hapus ${product.name}?")
+            .setPositiveButton("Hapus") { _, _ -> deleteProductApi(product.id) }
             .setNegativeButton("Batal", null)
             .show()
     }
 
     private fun deleteProductApi(id: Int) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
-                android.util.Log.d("DELETE_CHECK", "Menghapus ID: $id")
-
                 val response = ApiClient.instance.deleteProduct(id)
-
-                // Cek status code di Logcat
-                android.util.Log.d("DELETE_CHECK", "Response Code: ${response.code()}")
-
-                // 200 = OK, 204 = No Content (Sukses juga)
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Produk berhasil dihapus", Toast.LENGTH_SHORT).show()
-
-                    // REFRESH LIST SETELAH HAPUS
+                    Toast.makeText(context, "Berhasil dihapus", Toast.LENGTH_SHORT).show()
                     fetchProducts()
                 } else {
-                    // Baca error message dari server
-                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                    android.util.Log.e("DELETE_CHECK", "Gagal: $errorMsg")
-                    Toast.makeText(context, "Gagal menghapus: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("DELETE_CHECK", "Error: ${e.message}")
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }

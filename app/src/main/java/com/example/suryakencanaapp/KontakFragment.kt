@@ -1,59 +1,119 @@
 package com.example.suryakencanaapp
 
+import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.example.suryakencanaapp.api.ApiClient
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML benar
 
-/**
- * A simple [Fragment] subclass.
- * Use the [KontakFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class KontakFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    // UI Variables
+    private lateinit var etEmail: TextInputEditText
+    private lateinit var etWhatsapp: TextInputEditText
+    private lateinit var etAddress: TextInputEditText
+    private lateinit var etMaps: TextInputEditText
+    private lateinit var btnSave: MaterialButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // 1. Inisialisasi View
+        etEmail = view.findViewById(R.id.etEmail)
+        etWhatsapp = view.findViewById(R.id.etWhatsapp)
+        etAddress = view.findViewById(R.id.etAddress)
+        etMaps = view.findViewById(R.id.etMaps)
+        btnSave = view.findViewById(R.id.btnSaveContact)
+
+        // 2. Button Save Listener
+        btnSave.setOnClickListener {
+            saveContactData()
+        }
+
+        // 3. Ambil Data Awal
+        fetchContactData()
+    }
+
+    private fun fetchContactData() {
+        lifecycleScope.launch {
+            try {
+                // Panggil API
+                val response = ApiClient.instance.getContact()
+
+                if (response.isSuccessful && response.body() != null) {
+                    val listData = response.body()!!
+
+                    if (listData.isNotEmpty()) {
+                        // Ambil data pertama (index 0)
+                        val data = listData[0]
+
+                        // Isi Form
+                        etEmail.setText(data.email)
+                        etWhatsapp.setText(data.phone)
+                        etAddress.setText(data.address)
+                        etMaps.setText(data.mapUrl)
+                    }
+                } else {
+                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("CONTACT_API", "Error: ${e.message}")
+                Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_kontak, container, false)
-    }
+    private fun saveContactData() {
+        val email = etEmail.text.toString().trim()
+        val phone = etWhatsapp.text.toString().trim()
+        val address = etAddress.text.toString().trim()
+        val maps = etMaps.text.toString().trim()
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment KontakFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            KontakFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+        // Validasi sederhana
+        if (email.isEmpty() || phone.isEmpty() || address.isEmpty()) {
+            Toast.makeText(context, "Email, WA, dan Alamat wajib diisi!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Ambil Token
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "") ?: ""
+
+        lifecycleScope.launch {
+            try {
+                btnSave.isEnabled = false
+                btnSave.text = "Menyimpan..."
+
+                // Kirim ke API
+                val response = ApiClient.instance.updateContact(
+                    "Bearer $token",
+                    email,
+                    phone,
+                    address,
+                    maps
+                )
+
+                if (response.isSuccessful) {
+                    Toast.makeText(context, "Kontak Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Cek error message dari server jika ada
+                    val errorMsg = response.errorBody()?.string()
+                    Log.e("CONTACT_UPDATE", "Error: $errorMsg")
+                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
+
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                btnSave.isEnabled = true
+                btnSave.text = "Simpan Perubahan"
             }
+        }
     }
 }

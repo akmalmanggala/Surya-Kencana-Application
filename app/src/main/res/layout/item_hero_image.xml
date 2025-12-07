@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="160dp"
+    android:layout_height="100dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/imgHero"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/package_2_24dp_ffffff_fill0_wght400_grad0_opsz24" />
+
+        <ImageButton
+            android:id="@+id/btnDeleteImage"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_circle_white"
+            android:src="@drawable/delete_24dp_ffffff_fill0_wght400_grad0_opsz24"
+            android:padding="6dp"
+            app:tint="@color/danger_red"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

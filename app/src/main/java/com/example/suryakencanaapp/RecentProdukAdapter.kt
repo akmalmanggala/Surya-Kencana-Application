@@ -12,9 +12,9 @@ import com.example.suryakencanaapp.model.Product
 import java.text.NumberFormat
 import java.util.Locale
 
-class RecentProductAdapter(
+class RecentProdukAdapter(
     private var productList: List<Product>
-) : RecyclerView.Adapter<RecentProductAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<RecentProdukAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvName: TextView = itemView.findViewById(R.id.tvRecentName)
@@ -56,4 +56,10 @@ class RecentProductAdapter(
     }
 
     override fun getItemCount() = productList.size
+
+    fun updateData(newList: List<Product>) {
+        this.productList = newList
+        notifyDataSetChanged()
+    }
 }
+

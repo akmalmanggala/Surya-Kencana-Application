@@ -16,6 +16,7 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/tvPageTitle"
             android:text="Tambah Produk Baru"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -76,33 +77,100 @@
         <LinearLayout
             android:id="@+id/btnUploadImage"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="wrap_content"
             android:background="@drawable/bg_dashed_border"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
+            android:padding="8dp"
+            android:layout_marginBottom="24dp"
+            >
 
             <ImageView
-                android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                app:tint="@color/brown_primary"
+                android:id="@+id/imgUploadIcon"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_marginBottom="8dp"/>
-            <TextView
-                android:id="@+id/tvUploadInfo"
-                android:text="Tap to Upload Image"
-                android:textColor="@color/brown_primary"
-                android:textStyle="bold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                app:tint="@color/brown_primary" />
+
+            <ImageView
+                android:id="@+id/imgPreviewReal"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
 
             <TextView
-                android:text="Max size: 5MB"
-                android:textSize="10sp"
+                android:id="@+id/tvUploadInfo"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tap to Upload Image"
+                android:textColor="@color/brown_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvUploadInfo2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Maks. size: 100MB"
+                android:textSize="10sp" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gambar Album (Opsional)"
+            android:textColor="@color/text_dark"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_dashed_border"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:id="@+id/btnUploadAlbum"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    app:tint="@color/brown_primary"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pilih Banyak Gambar"
+                    android:textColor="@color/brown_primary"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp"/>
+
+                <TextView
+                    android:text="Maks. 100MB per gambar"
+                    android:textSize="10sp"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAlbumPreview"
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:visibility="gone" /> </LinearLayout>
 
         <Space android:layout_width="match_parent" android:layout_height="32dp"/>
 
@@ -116,28 +184,24 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Batal"
-                android:layout_marginEnd="8dp"
-                app:strokeColor="#BDBDBD"
-                app:strokeWidth="1dp"
+                android:textStyle="bold"
                 app:cornerRadius="12dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"/>
+                app:strokeColor="#BDBDBD" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Simpan Produk"
+                android:text="Tambah Produk"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                android:layout_marginStart="8dp"
                 app:backgroundTint="@color/brown_primary"
-                app:cornerRadius="12dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"/>
+                app:cornerRadius="12dp" />
         </LinearLayout>
 
     </LinearLayout>

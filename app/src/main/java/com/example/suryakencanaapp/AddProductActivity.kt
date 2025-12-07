@@ -1,6 +1,6 @@
 package com.example.suryakencanaapp
 
-import android.app.Activity
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +13,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.suryakencanaapp.adapter.AlbumImageAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.utils.FileUtils
 import com.google.android.material.textfield.TextInputEditText
@@ -33,131 +36,196 @@ class AddProductActivity : AppCompatActivity() {
     private lateinit var btnCancel: Button
     private lateinit var btnUpload: LinearLayout
     private lateinit var tvUploadLabel: TextView
-    private lateinit var imgPreview: ImageView // Tambahkan ImageView di XML Anda untuk preview (opsional)
 
-    // Variabel Data
-    private var selectedImageUri: Uri? = null
+    // --- VARIABEL UNTUK PREVIEW ---
+    private lateinit var imgUploadIcon: ImageView
+    private lateinit var imgPreviewReal: ImageView
+    private lateinit var btnUploadAlbum: LinearLayout
+    private lateinit var rvAlbumPreview: RecyclerView
+    private lateinit var albumAdapter: AlbumImageAdapter
+    private lateinit var tvUploadInfo2: TextView
+
     private var selectedFile: File? = null
+    private val selectedAlbumFiles = mutableListOf<File>() // List file album
+    private val selectedAlbumUris = mutableListOf<Uri>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_produk)
+        setContentView(R.layout.activity_add_produk) // Pastikan nama XML benar
 
         initViews()
         setupListeners()
     }
 
     private fun initViews() {
-        // Karena TextInputLayout, kita ambil EditText di dalamnya
-        // Pastikan Anda memberi ID pada TextInputEditText di XML, bukan Layout-nya
-        // Contoh di XML: <TextInputEditText android:id="@+id/etName" ... />
-
-        // SEMENTARA: Sesuaikan ID ini dengan XML Anda
-        // Saya asumsikan Anda akan menambahkan ID ke TextInputEditText di XML
         etName = findViewById(R.id.etName)
         etPrice = findViewById(R.id.etPrice)
         etDesc = findViewById(R.id.etDesc)
-
         btnSave = findViewById(R.id.btnSave)
         btnCancel = findViewById(R.id.btnCancel)
         btnUpload = findViewById(R.id.btnUploadImage)
-
-        // Cari TextView label upload untuk diubah text-nya nanti
-        // Anda mungkin perlu menambahkan ID di TextView "Tap to Upload Image" pada XML
-        // Contoh: android:id="@+id/tvUploadInfo"
         tvUploadLabel = findViewById(R.id.tvUploadInfo)
+        tvUploadInfo2 = findViewById(R.id.tvUploadInfo2)
+
+
+        // --- INISIALISASI IMAGE VIEW ---
+        imgUploadIcon = findViewById(R.id.imgUploadIcon)
+        imgPreviewReal = findViewById(R.id.imgPreviewReal)
+
+        btnUploadAlbum = findViewById(R.id.btnUploadAlbum)
+        rvAlbumPreview = findViewById(R.id.rvAlbumPreview)
+
+        rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        albumAdapter = AlbumImageAdapter(selectedAlbumUris) { position ->
+            // Logic Hapus Item dari Album
+            selectedAlbumUris.removeAt(position)
+            selectedAlbumFiles.removeAt(position)
+            albumAdapter.notifyItemRemoved(position)
+
+            // Sembunyikan RecyclerView jika kosong
+            if (selectedAlbumUris.isEmpty()) {
+                rvAlbumPreview.visibility = View.GONE
+            }
+        }
+        rvAlbumPreview.adapter = albumAdapter
     }
 
     private fun setupListeners() {
-        // 1. Tombol Batal
         btnCancel.setOnClickListener { finish() }
-
-        // 2. Tombol Upload Gambar
+        btnSave.setOnClickListener { uploadProduct() }
+        // Listener Gambar UTAMA (Single)
         btnUpload.setOnClickListener {
-            openGallery()
+            mainImageLauncher.launch("image/*")
         }
 
-        // 3. Tombol Simpan
-        btnSave.setOnClickListener {
-            uploadProduct()
+        // Listener Gambar ALBUM (Multiple)
+        btnUploadAlbum.setOnClickListener {
+            albumImageLauncher.launch("image/*")
         }
+
     }
 
-    // --- LOGIC BUKA GALERI ---
-    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    // --- LOGIC BUKA GALERI & TAMPILKAN PREVIEW ---
+    private val mainImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            selectedImageUri = uri
+            // Update UI Preview Utama
+            imgUploadIcon.visibility = View.GONE
+            imgPreviewReal.visibility = View.VISIBLE
+            imgPreviewReal.setImageURI(uri)
+            tvUploadLabel.text = "Gambar Utama Terpilih"
+            tvUploadInfo2.text = "Tekan lagi untuk mengganti gambar"
 
-            // Tampilkan info file terpilih
-            tvUploadLabel.text = "Gambar terpilih!"
-
-            // Konversi URI ke File agar siap upload
+            // Konversi ke File
             selectedFile = FileUtils.getFileFromUri(this, uri)
-
-            if (selectedFile == null) {
-                Toast.makeText(this, "Gagal memproses gambar", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
-    private fun openGallery() {
-        galleryLauncher.launch("image/*")
+    // --- 2. LAUNCHER GAMBAR ALBUM (BARU) ---
+    // Pakai: GetMultipleContents() -> Bisa pilih banyak
+    private val albumImageLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            // Munculkan RecyclerView Album
+            rvAlbumPreview.visibility = View.VISIBLE
+
+            for (uri in uris) {
+                // Konversi setiap gambar jadi File
+                val file = FileUtils.getFileFromUri(this, uri)
+                if (file != null) {
+                    selectedAlbumFiles.add(file) // Simpan File untuk diupload
+                    selectedAlbumUris.add(uri)   // Simpan URI untuk preview
+                }
+            }
+
+            // Refresh Adapter Album
+            albumAdapter.notifyDataSetChanged()
+            Toast.makeText(this, "${uris.size} gambar ditambahkan", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    // --- LOGIC UPLOAD KE SERVER ---
+    // --- LOGIC UPLOAD (Sama seperti sebelumnya) ---
     private fun uploadProduct() {
         val name = etName.text.toString().trim()
         val priceRaw = etPrice.text.toString().trim()
         val desc = etDesc.text.toString().trim()
 
-        // VALIDASI INPUT
+        // Validasi dasar (Main Image wajib, Album opsional)
         if (name.isEmpty() || priceRaw.isEmpty() || desc.isEmpty() || selectedFile == null) {
-            Toast.makeText(this, "Semua data (Nama, Harga, Deskripsi, Gambar) wajib diisi!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Data wajib (Nama, Harga, Deskripsi, Gambar Utama) belum lengkap!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // BERSIHKAN HARGA (Opsional tapi disarankan)
-        // Jika user mengetik "20.000", Laravel butuh "20000" (numeric).
-        // Hapus titik/koma jika ada.
-        val priceClean = priceRaw.replace(".", "").replace(",", "")
+        val sharedPref = getSharedPreferences("AppSession", MODE_PRIVATE)
+        val token = sharedPref.getString("TOKEN", "") ?: return
+        val authHeader = "Bearer $token"
 
-        btnSave.isEnabled = false
-        btnSave.text = "Uploading..."
+        val priceClean = priceRaw.replace(".", "").replace(",", "")
 
         lifecycleScope.launch {
             try {
-                // 1. SIAPKAN DATA TEKS (name, price, description)
+                setLoading(true)
+
+                // 1. SIAPKAN DATA TEKS
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqPrice = priceClean.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqDesc = desc.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // 2. SIAPKAN DATA GAMBAR (image_path)
-                // Buat RequestBody dari file
-                val requestFile = selectedFile!!.asRequestBody("image/*".toMediaTypeOrNull())
+                // 2. SIAPKAN GAMBAR UTAMA (selectedFile)
+                // Deteksi MimeType (PNG/JPG)
+                val mimeTypeMain = if (selectedFile!!.extension.equals("png", true)) "image/png" else "image/jpeg"
+                val requestFile = selectedFile!!.asRequestBody(mimeTypeMain.toMediaTypeOrNull())
 
-                // INI KUNCINYA: Ganti "image" menjadi "image_path" sesuai controller Laravel
-                val bodyImage = MultipartBody.Part.createFormData("image_path", selectedFile!!.name, requestFile)
+                // Nama field: "image_path" (Sesuai Controller Laravel)
+                val bodyMainImage = MultipartBody.Part.createFormData("image_path", selectedFile!!.name, requestFile)
 
-                // 3. KIRIM KE SERVER
-                val response = ApiClient.instance.addProduct(reqName, reqPrice, reqDesc, bodyImage)
+                // 3. SIAPKAN GAMBAR ALBUM (Looping selectedAlbumFiles) --- [BAGIAN BARU] ---
+                val albumParts = mutableListOf<MultipartBody.Part>()
+
+                // 'selectedAlbumFiles' adalah list yang kita buat di langkah sebelumnya
+                for (file in selectedAlbumFiles) {
+                    val mimeTypeAlbum = if (file.extension.equals("png", true)) "image/png" else "image/jpeg"
+                    val reqFileAlbum = file.asRequestBody(mimeTypeAlbum.toMediaTypeOrNull())
+
+                    // PENTING: Nama field harus "images[]" (pakai kurung siku) agar dibaca Array oleh Laravel
+                    val part = MultipartBody.Part.createFormData("images[]", file.name, reqFileAlbum)
+
+                    albumParts.add(part)
+                }
+                // -------------------------------------------------------------------------
+
+                // 4. KIRIM KE API (Tambahkan parameter albumParts)
+                val response = ApiClient.instance.addProduct(
+                    authHeader,
+                    reqName,
+                    reqPrice,
+                    reqDesc,
+                    bodyMainImage,
+                    if (albumParts.isEmpty()) null else albumParts // Kirim null jika tidak ada album
+                )
 
                 if (response.isSuccessful) {
                     Toast.makeText(this@AddProductActivity, "Produk Berhasil Disimpan!", Toast.LENGTH_LONG).show()
-                    finish() // Tutup halaman dan kembali ke list
+                    finish()
                 } else {
-                    // Baca error dari Laravel (biasanya JSON validation error)
                     val errorMsg = response.errorBody()?.string()
                     Log.e("UPLOAD_ERROR", errorMsg ?: "Unknown error")
-                    Toast.makeText(this@AddProductActivity, "Gagal: Cek Logcat untuk detail", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddProductActivity, "Gagal: Cek Logcat", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
-                Log.e("UPLOAD_EXCEPTION", "Error: ${e.message}")
-                Toast.makeText(this@AddProductActivity, "Error koneksi: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AddProductActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                btnSave.isEnabled = true
-                btnSave.text = "Simpan Produk"
+                setLoading(false)
             }
+        }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            btnSave.isEnabled = false
+            btnSave.text = "Uploading..."
+        } else {
+            btnSave.isEnabled = true
+            btnSave.text = "Tambah Produk"
         }
     }
 }

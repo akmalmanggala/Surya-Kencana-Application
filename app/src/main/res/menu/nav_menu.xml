@@ -4,7 +4,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_dashboard"
-            android:icon="@drawable/dashboard_24dp_ffffff_fill0_wght400_grad0_opsz24"
+            android:icon="@drawable/home_24dp_ffffff_fill0_wght400_grad0_opsz24"
             android:title="Dashboard" />
 
         <item
@@ -23,37 +23,45 @@
             android:title="Manajemen Testimoni" />
     </group>
 
-    <item
-        android:title="Konten Website">
+    <item android:title="Konten Website">
         <menu>
-            <item
-                android:id="@+id/nav_visi_misi"
-                android:icon="@drawable/text_snippet_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                android:title="Visi &amp; Misi" />
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_visi_misi"
+                    android:icon="@drawable/text_snippet_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Visi &amp; Misi" />
 
-            <item
-                android:id="@+id/nav_riwayat"
-                android:icon="@drawable/date_range_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                android:title="Riwayat Perusahaan" />
+                <item
+                    android:id="@+id/nav_riwayat"
+                    android:icon="@drawable/date_range_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Riwayat Perusahaan" />
 
-            <item
-                android:id="@+id/nav_hero"
-                android:icon="@drawable/imagesmode_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                android:title="Hero / Banner" />
+                <item
+                    android:id="@+id/nav_hero"
+                    android:icon="@drawable/imagesmode_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Hero Section" />
+            </group>
         </menu>
     </item>
 
     <item android:title="Sistem">
         <menu>
-            <item
-                android:id="@+id/nav_kontak"
-                android:icon="@drawable/call_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                android:title="Data Kontak Masuk" />
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_kontak"
+                    android:icon="@drawable/call_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Kontak" />
 
-            <item
-                android:id="@+id/nav_pengaturan"
-                android:icon="@drawable/settings_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                android:title="Pengaturan Situs" />
+                <item
+                    android:id="@+id/nav_pengaturan"
+                    android:icon="@drawable/settings_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Pengaturan Situs" />
+
+                <item
+                    android:id="@+id/nav_admin_management"
+                    android:icon="@drawable/manage_accounts_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    android:title="Manajemen Admin" />
+            </group>
         </menu>
     </item>
 

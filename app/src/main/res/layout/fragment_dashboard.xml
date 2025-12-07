@@ -251,6 +251,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
+                        android:id="@+id/tvSeeAllTestimonies"
                         android:text="Lihat Semua"
                         android:textSize="12sp"
                         android:textColor="@color/brown_primary"
@@ -260,16 +261,13 @@
                         android:layout_height="wrap_content"/>
                 </RelativeLayout>
 
-                <LinearLayout
-                    android:id="@+id/containerRecentTestimonis"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecentTestimoni"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <TextView
-                        android:text="Loading data..."
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_recent_testimoni"
+                    tools:itemCount="3"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -548,7 +546,7 @@
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
-                            android:text="Hero/Banner"
+                            android:text="Hero"
                             android:textSize="12sp"
                             android:textAlignment="center"
                             android:textColor="@color/text_dark"
@@ -637,6 +635,51 @@
 
                         <TextView
                             android:text="Situs"
+                            android:textSize="12sp"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQuickAdmin"
+                    android:layout_width="100dp"
+                    android:layout_height="110dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardCornerRadius="24dp"
+                            app:cardBackgroundColor="#F5F5F5"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/manage_accounts_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                                app:tint="@color/brown_primary"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:text="Admin"
                             android:textSize="12sp"
                             android:textAlignment="center"
                             android:textColor="@color/text_dark"

@@ -43,7 +43,19 @@ class MainActivity : AppCompatActivity() {
 
         // 3. AMBIL DATA DARI SESSION (SharedPref)
         val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val userRole = sharedPref.getString("ROLE", "admin")
         val username = sharedPref.getString("USERNAME", "Admin")
+
+        val menu = navView.menu
+        val adminMenu = menu.findItem(R.id.nav_admin_management)
+
+        if (userRole.equals("superadmin", ignoreCase = true)) {
+            // Jika Super Admin: Munculkan
+            adminMenu.isVisible = true
+        } else {
+            // Jika Admin Biasa: Sembunyikan
+            adminMenu.isVisible = false
+        }
 
         // 4. TEMPELKAN DATA KE HEADER
         tvHeaderName.text = "Halo, $username"
@@ -59,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.nav_dashboard, R.id.nav_produk, R.id.nav_klien, R.id.nav_testimoni,
                 R.id.nav_visi_misi, R.id.nav_riwayat, R.id.nav_hero,
-                R.id.nav_kontak, R.id.nav_pengaturan
+                R.id.nav_kontak, R.id.nav_pengaturan, R.id.nav_admin_management
             ), drawerLayout
         )
 

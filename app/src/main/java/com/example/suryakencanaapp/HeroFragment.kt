@@ -1,59 +1,217 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.suryakencanaapp.adapter.HeroAdapter
+import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.utils.FileUtils
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class HeroFragment : Fragment(R.layout.fragment_hero) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [HeroFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class HeroFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    // UI Variables
+    private lateinit var etLocation: TextInputEditText
+    private lateinit var etHeroTitle: TextInputEditText
+    private lateinit var etStatMachine: TextInputEditText
+    private lateinit var etStatCustomer: TextInputEditText
+    private lateinit var etStatClient: TextInputEditText
+    private lateinit var etStatExp: TextInputEditText
+    private lateinit var etStatTrust: TextInputEditText
+    private lateinit var btnSave: MaterialButton
+    private lateinit var btnAddImage: LinearLayout
+    private lateinit var rvHeroImages: RecyclerView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private lateinit var heroImageAdapter: HeroAdapter
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initViews(view)
+
+        // Setup RecyclerView
+        rvHeroImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        heroImageAdapter = HeroAdapter(listOf(), listOf()) { pathToDelete ->
+            showDeleteConfirmation(pathToDelete)
+        }
+        rvHeroImages.adapter = heroImageAdapter
+
+        // Listeners
+        btnAddImage.setOnClickListener { openGallery() }
+        btnSave.setOnClickListener { saveChanges() }
+
+        // Fetch Data
+        fetchHeroData()
+    }
+
+    private fun initViews(view: View) {
+        etLocation = view.findViewById(R.id.etLocation)
+        etHeroTitle = view.findViewById(R.id.etHeroTitle)
+        etStatMachine = view.findViewById(R.id.etStatMachine)
+        etStatCustomer = view.findViewById(R.id.etStatCustomer)
+        etStatClient = view.findViewById(R.id.etStatClient)
+        etStatExp = view.findViewById(R.id.etStatExp)
+        etStatTrust = view.findViewById(R.id.etStatTrust)
+        btnSave = view.findViewById(R.id.btnSaveHero)
+        btnAddImage = view.findViewById(R.id.btnAddImage)
+        rvHeroImages = view.findViewById(R.id.rvHeroImages)
+    }
+
+    private fun fetchHeroData() {
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.instance.getHero()
+                if (response.isSuccessful && response.body() != null) {
+                    val list = response.body()!!
+                    if (list.isNotEmpty()) {
+                        val data = list[0]
+
+                        // Isi Form
+                        etLocation.setText(data.location)
+                        etHeroTitle.setText(data.title)
+                        etStatMachine.setText(data.machines?.toString() ?: "0")
+                        etStatClient.setText(data.clients?.toString() ?: "0")
+                        etStatCustomer.setText(data.customers?.toString() ?: "0")
+                        etStatExp.setText(data.experienceYears?.toString() ?: "0")
+                        etStatTrust.setText(data.trustYears?.toString() ?: "0")
+
+                        // Isi Gambar Slider
+                        val urls = data.backgroundUrls ?: listOf()
+                        val paths = data.backgroundPaths ?: listOf()
+                        heroImageAdapter.updateData(urls, paths)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("HERO_API", "Error: ${e.message}")
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_hero, container, false)
+    // --- FITUR 1: SIMPAN PERUBAHAN TEKS ---
+    private fun saveChanges() {
+        updateHeroApi(
+            newImageFile = null, // Tidak ada gambar baru
+            deletedPath = null   // Tidak ada yang dihapus
+        )
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HeroFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HeroFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    // --- FITUR 2: TAMBAH GAMBAR ---
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            val file = FileUtils.getFileFromUri(requireContext(), uri)
+            if (file != null) {
+                // Langsung upload begitu gambar dipilih
+                Toast.makeText(context, "Mengupload gambar...", Toast.LENGTH_SHORT).show()
+                updateHeroApi(newImageFile = file, deletedPath = null)
             }
+        }
+    }
+
+    private fun openGallery() {
+        galleryLauncher.launch("image/*")
+    }
+
+    // --- FITUR 3: HAPUS GAMBAR ---
+    private fun showDeleteConfirmation(path: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Gambar")
+            .setMessage("Yakin ingin menghapus gambar ini dari slider?")
+            .setPositiveButton("Hapus") { _, _ ->
+                Toast.makeText(context, "Menghapus gambar...", Toast.LENGTH_SHORT).show()
+                updateHeroApi(newImageFile = null, deletedPath = path)
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // --- FUNGSI UPDATE SENTRAL (Menangani Semua Kasus) ---
+    private fun updateHeroApi(newImageFile: File?, deletedPath: String?) {
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "") ?: return
+
+        lifecycleScope.launch {
+            try {
+                btnSave.isEnabled = false
+                btnSave.text = "Memproses..."
+
+                // 1. Siapkan Text Body
+                val location = createPart(etLocation.text.toString())
+                val title = createPart(etHeroTitle.text.toString())
+                val machine = createPart(etStatMachine.text.toString())
+                val client = createPart(etStatClient.text.toString())
+                val customer = createPart(etStatCustomer.text.toString())
+                val exp = createPart(etStatExp.text.toString())
+                val trust = createPart(etStatTrust.text.toString())
+
+                // 2. Siapkan Gambar Baru (Jika ada)
+                val newImagesList = if (newImageFile != null) {
+                    val reqFile = newImageFile.asRequestBody("image/*".toMediaTypeOrNull())
+                    // Nama field array: backgrounds[]
+                    listOf(MultipartBody.Part.createFormData("backgrounds[]", newImageFile.name, reqFile))
+                } else {
+                    null
+                }
+
+                // 3. Siapkan Path Hapus (Jika ada)
+                val deletedImagesList = if (deletedPath != null) {
+                    // Buat List berisi 1 item Part
+                    val pathBody = createPart(deletedPath) // createPart = RequestBody text
+
+                    // Kuncinya: Nama field harus "deleted_backgrounds[]"
+                    listOf(MultipartBody.Part.createFormData("deleted_backgrounds[]", null, pathBody))
+                } else {
+                    null
+                }
+
+                // 4. Kirim Request
+                val response = ApiClient.instance.updateHero(
+                    "Bearer $token",
+                    location, title, machine, client, customer, exp, trust,
+                    newImagesList,
+                    deletedImagesList // Kirim List Part tadi
+                )
+
+                if (response.isSuccessful) {
+                    Toast.makeText(context, "Berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                    fetchHeroData() // Refresh agar tampilan sinkron
+                } else {
+                    val err = response.errorBody()?.string()
+                    Log.e("HERO_UPDATE", "Gagal: $err")
+                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: Exception) {
+                Log.e("HERO_UPDATE", "Error: ${e.message}")
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                btnSave.isEnabled = true
+                btnSave.text = "Simpan Perubahan"
+            }
+        }
+    }
+
+    // Helper untuk buat RequestBody string
+    private fun createPart(value: String): RequestBody {
+        return value.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 }

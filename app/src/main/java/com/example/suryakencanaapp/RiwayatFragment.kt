@@ -1,59 +1,147 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.suryakencanaapp.adapter.HistoryAdapter
+import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.model.History
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [RiwayatFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class RiwayatFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var rvHistory: RecyclerView
+    private lateinit var historyAdapter: HistoryAdapter
+    private lateinit var etSearch: EditText
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    // Simpan semua data asli untuk keperluan filter manual
+    private var allHistoryList: List<History> = listOf()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        rvHistory = view.findViewById(R.id.rvRiwayat)
+        rvHistory.layoutManager = LinearLayoutManager(context)
+
+        // Init Adapter (Handle Delete & Edit)
+        historyAdapter = HistoryAdapter(
+            listOf(),
+            onDeleteClick = { history -> showDeleteConfirmation(history) },
+            onEditClick = { history ->
+                // Navigate to Edit Activity
+                val intent = Intent(context, EditHistoryActivity::class.java)
+                intent.putExtra("ID", history.id)
+                intent.putExtra("TAHUN", history.tahun.toString())
+                intent.putExtra("JUDUL", history.judul)
+                intent.putExtra("DESKRIPSI", history.deskripsi)
+                intent.putExtra("IMAGE_URL", history.imageUrl)
+                startActivity(intent)
+            }
+        )
+        rvHistory.adapter = historyAdapter
+
+        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddRiwayat)
+        btnAdd.setOnClickListener {
+            startActivity(Intent(requireContext(), AddHistoryActivity::class.java))
+        }
+
+        etSearch = view.findViewById(R.id.etSearch)
+        setupSearchListener()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchHistories()
+    }
+
+    private fun setupSearchListener() {
+        etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val keyword = s.toString().trim().lowercase()
+                filterData(keyword)
+            }
+        })
+    }
+
+    // Filter Manual di Android (Karena API tidak support search)
+    private fun filterData(keyword: String) {
+        if (keyword.isEmpty()) {
+            historyAdapter.updateData(allHistoryList)
+        } else {
+            val filteredList = allHistoryList.filter {
+                it.judul.lowercase().contains(keyword) ||
+                        it.tahun.toString().contains(keyword)
+            }
+            historyAdapter.updateData(filteredList)
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_riwayat, container, false)
+    private fun fetchHistories() {
+        lifecycleScope.launch {
+            try {
+                // Panggil API (Tanpa parameter search)
+                val response = ApiClient.instance.getHistories()
+
+                if (response.isSuccessful && response.body() != null) {
+                    allHistoryList = response.body()!!
+
+                    // Urutkan Tahun Terlama ke Terbaru (Ascending) sesuai Controller
+                    // Atau descending jika ingin terbaru diatas
+                    val sortedList = allHistoryList.sortedByDescending { it.tahun }
+                    allHistoryList = sortedList // Update master list
+
+                    historyAdapter.updateData(allHistoryList)
+                } else {
+                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("HISTORY", "Error: ${e.message}")
+            }
+        }
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RiwayatFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            RiwayatFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    // ... (Fungsi showDeleteConfirmation & deleteHistoryApi sama seperti sebelumnya) ...
+    private fun showDeleteConfirmation(data: History) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Riwayat")
+            .setMessage("Yakin ingin menghapus ${data.judul} (${data.tahun})?")
+            .setPositiveButton("Hapus") { _, _ -> deleteHistoryApi(data.id) }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun deleteHistoryApi(id: Int) {
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "") ?: return
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.instance.deleteHistory("Bearer $token", id)
+                if (response.isSuccessful) {
+                    Toast.makeText(context, "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
+                    fetchHistories()
+                } else {
+                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 }

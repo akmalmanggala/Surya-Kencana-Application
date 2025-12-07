@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,7 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.suryakencanaapp.adapter.RecentProductAdapter
+import com.example.suryakencanaapp.adapter.RecentProdukAdapter
+import com.example.suryakencanaapp.adapter.RecentTestiAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.launch
@@ -25,7 +27,11 @@ class DashboardFragment : Fragment() {
     private lateinit var tvCountTesti: TextView
     private lateinit var tvCountAdmin: TextView
     private lateinit var rvRecentProducts: RecyclerView
-    private lateinit var tvSeeAll: TextView
+    private lateinit var rvRecentTestimoni: RecyclerView
+    private lateinit var recentProductAdapter: RecentProdukAdapter
+    private lateinit var recentTestiAdapter: RecentTestiAdapter
+    private lateinit var tvSeeAllProduct: TextView
+    private lateinit var tvSeeAllTestimoni: TextView
     private lateinit var btnQuickProduct: MaterialCardView
     private lateinit var btnQuickClient: MaterialCardView
     private lateinit var btnQuickTestimony: MaterialCardView
@@ -34,6 +40,7 @@ class DashboardFragment : Fragment() {
     private lateinit var btnQuickHero: MaterialCardView
     private lateinit var btnQuickContact: MaterialCardView
     private lateinit var btnQuickSitus: MaterialCardView
+    private lateinit var btnQuickAdmin: MaterialCardView
 
 
 
@@ -50,6 +57,8 @@ class DashboardFragment : Fragment() {
 
         // 1. INISIALISASI VIEW
         initViews(view)
+
+        checkUserRole()
 
         // 2. SETUP NAVIGASI
         setupActions()
@@ -69,8 +78,18 @@ class DashboardFragment : Fragment() {
         rvRecentProducts = view.findViewById(R.id.rvRecentProducts)
         rvRecentProducts.layoutManager = LinearLayoutManager(context) // List ke bawah
 
+        rvRecentTestimoni = view.findViewById(R.id.rvRecentTestimoni) // Pastikan ID ini ada di XML
+        rvRecentTestimoni.layoutManager = LinearLayoutManager(context)
+
+        recentProductAdapter = RecentProdukAdapter(listOf()) // Init kosong
+        rvRecentProducts.adapter = recentProductAdapter
+
+        recentTestiAdapter = RecentTestiAdapter(listOf())
+        rvRecentTestimoni.adapter = recentTestiAdapter
+
         // Tombol Lihat Semua
-        tvSeeAll = view.findViewById(R.id.tvSeeAllProducts)
+        tvSeeAllProduct = view.findViewById(R.id.tvSeeAllProducts)
+        tvSeeAllTestimoni = view.findViewById(R.id.tvSeeAllTestimonies)
 
         btnQuickProduct = view.findViewById(R.id.btnQuickProduct)
         btnQuickClient = view.findViewById(R.id.btnQuickClient)
@@ -80,17 +99,40 @@ class DashboardFragment : Fragment() {
         btnQuickRiwayat = view.findViewById(R.id.btnQuickRiwayat)
         btnQuickHero = view.findViewById(R.id.btnQuickHero)
         btnQuickSitus = view.findViewById(R.id.btnQuickSitus)
+        btnQuickAdmin = view.findViewById(R.id.btnQuickAdmin)
 
+    }
+
+    private fun checkUserRole() {
+        val sharedPref = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val role = sharedPref.getString("ROLE", "admin") // Default admin biasa
+
+        if (role.equals("superadmin", ignoreCase = true)) {
+            // Jika Super Admin -> TAMPILKAN
+            btnQuickAdmin.visibility = View.VISIBLE
+        } else {
+            // Jika Admin Biasa -> SEMBUNYIKAN
+            btnQuickAdmin.visibility = View.GONE
+        }
     }
 
     private fun setupActions() {
         // Klik "Lihat Semua" -> Pindah ke Fragment Produk
-        tvSeeAll.setOnClickListener {
+        tvSeeAllProduct.setOnClickListener {
             try {
                 findNavController().navigate(R.id.nav_produk)
             } catch (e: Exception) {
                 // Jaga-jaga jika navigasi belum di-setup dengan benar
                 Toast.makeText(context, "Navigasi ke Produk belum diset", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        tvSeeAllTestimoni.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.nav_testimoni)
+            } catch (e: Exception) {
+                // Jaga-jaga jika navigasi belum di-setup dengan benar
+                Toast.makeText(context, "Navigasi ke Testimoni belum diset", Toast.LENGTH_SHORT).show()
             }
         }
         // --- 2. LOGIC AKSES CEPAT ---
@@ -130,6 +172,9 @@ class DashboardFragment : Fragment() {
         btnQuickSitus.setOnClickListener {
             safeNavigate(R.id.nav_pengaturan)
         }
+        btnQuickAdmin.setOnClickListener {
+            safeNavigate(R.id.nav_admin_management)
+        }
     }
 
     private fun fetchDashboardData() {
@@ -150,10 +195,23 @@ class DashboardFragment : Fragment() {
                 if (recentResponse.isSuccessful && recentResponse.body() != null) {
                     val products = recentResponse.body()!!
 
-                    // Pasang ke Adapter
-                    rvRecentProducts.adapter = RecentProductAdapter(products)
+                    // --- UBAH JADI SEPERTI INI ---
+                    // Jangan pakai 'rvRecentProducts.adapter = ...' lagi
+                    recentProductAdapter.updateData(products)
+                    // -----------------------------
 
                     Log.d("DASHBOARD", "Load ${products.size} produk terbaru berhasil")
+                }
+
+                // --- LOAD TESTIMONI ---
+                val responseTesti = ApiClient.instance.getRecentTestimonies()
+
+                if (responseTesti.isSuccessful && responseTesti.body() != null) {
+                    val listData = responseTesti.body()!!
+
+                    recentTestiAdapter.updateData(listData)
+
+                    Log.d("DASHBOARD", "Load ${listData.size} testi berhasil")
                 }
 
             } catch (e: Exception) {
