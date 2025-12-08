@@ -3,21 +3,16 @@ package com.example.suryakencanaapp
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.suryakencanaapp.adapter.AlbumImageAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.ActivityAddHistoryBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -27,76 +22,41 @@ import java.io.File
 
 class EditHistoryActivity : AppCompatActivity() {
 
-    // UI Variables
-    private lateinit var etYear: TextInputEditText
-    private lateinit var etTitle: TextInputEditText
-    private lateinit var etDesc: TextInputEditText
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
-    private lateinit var btnUpload: LinearLayout
-    private lateinit var tvUploadLabel: TextView
-    private lateinit var tvPageTitle: TextView
-    private lateinit var imgUploadIcon: ImageView
-    private lateinit var imgPreviewReal: ImageView
-
-    // Image UI (Album) - TAMBAHAN
-    private lateinit var btnUploadAlbum: LinearLayout
-    private lateinit var rvAlbumPreview: RecyclerView
+    private lateinit var binding: ActivityAddHistoryBinding
     private lateinit var albumAdapter: AlbumImageAdapter
 
-    // Data
     private var historyId: Int = 0
-    private var selectedMainFile: File? = null // Gambar Utama Baru
+    private var selectedMainFile: File? = null
 
-    // Data Album - TAMBAHAN
-    private val selectedNewAlbumFiles = mutableListOf<File>() // File baru (siap upload)
-    private val previewAlbumUris = mutableListOf<Uri>()       // Preview (Gabungan lama & baru)
-    private val deletedImagePaths = mutableListOf<String>()   // Path gambar lama yang dihapus
-    private val originalImageUrls = mutableListOf<String>()   // Helper untuk melacak gambar lama
+    private val selectedNewAlbumFiles = mutableListOf<File>()
+    private val previewAlbumUris = mutableListOf<Uri>()
+    private val deletedImagePaths = mutableListOf<String>()
+    private val originalImageUrls = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_history) // Reuse Layout
+
+        binding = ActivityAddHistoryBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initViews()
 
-        // Ubah Judul & Tombol
-        try { tvPageTitle.text = "Edit Riwayat" } catch (e: Exception) {}
-        btnSave.text = "Simpan Perubahan"
+        try { binding.tvPageTitle.text = "Edit Riwayat" } catch (e: Exception) {}
+        binding.btnSave.text = "Simpan Perubahan"
 
-        // Load data lengkap dari API
         loadDataFromApi()
         setupListeners()
     }
 
     private fun initViews() {
-        etYear = findViewById(R.id.etYear)
-        etTitle = findViewById(R.id.etTitle)
-        etDesc = findViewById(R.id.etDesc)
-        btnSave = findViewById(R.id.btnSave)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnUpload = findViewById(R.id.btnUploadImage)
-        tvUploadLabel = findViewById(R.id.tvUploadInfo)
-        imgUploadIcon = findViewById(R.id.imgUploadIcon)
-        imgPreviewReal = findViewById(R.id.imgPreviewReal)
-        tvPageTitle = findViewById(R.id.tvPageTitle)
-
-        // Init Album UI
-        // Pastikan ID ini sudah ada di XML activity_add_history.xml
-        // (Copy dari activity_add_produk.xml jika belum ada)
-        btnUploadAlbum = findViewById(R.id.btnUploadAlbum)
-        rvAlbumPreview = findViewById(R.id.rvAlbumPreview)
-        rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-
-        // --- TAMBAHAN OPTIMASI RECYCLERVIEW ---
-        rvAlbumPreview.setHasFixedSize(true) // Agar layout tidak hitung ulang ukuran terus menerus
-        rvAlbumPreview.setItemViewCacheSize(10) // Simpan 10 item di memori agar tidak reload saat scroll
-// --------------------------------------
+        binding.rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvAlbumPreview.setHasFixedSize(true)
+        binding.rvAlbumPreview.setItemViewCacheSize(10)
 
         albumAdapter = AlbumImageAdapter(previewAlbumUris) { position ->
             handleRemoveAlbumItem(position)
         }
-        rvAlbumPreview.adapter = albumAdapter
+        binding.rvAlbumPreview.adapter = albumAdapter
     }
 
     private fun loadDataFromApi() {
@@ -109,21 +69,18 @@ class EditHistoryActivity : AppCompatActivity() {
                 if (response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
-                    // ... (Isi teks tahun, judul, deskripsi, gambar utama) ...
-                    etYear.setText(data.tahun.toString())
-                    etTitle.setText(data.judul)
-                    etDesc.setText(data.deskripsi)
+                    binding.etYear.setText(data.tahun.toString())
+                    binding.etTitle.setText(data.judul)
+                    binding.etDesc.setText(data.deskripsi)
                     if (!data.imageUrl.isNullOrEmpty()) {
-                        imgUploadIcon.visibility = View.GONE
-                        imgPreviewReal.visibility = View.VISIBLE
-                        Glide.with(this@EditHistoryActivity).load(data.imageUrl).into(imgPreviewReal)
-                        tvUploadLabel.text = "Gambar Saat Ini"
+                        binding.imgUploadIcon.visibility = View.GONE
+                        binding.imgPreviewReal.visibility = View.VISIBLE
+                        Glide.with(this@EditHistoryActivity).load(data.imageUrl).into(binding.imgPreviewReal)
+                        binding.tvUploadInfo.text = "Gambar Saat Ini"
                     }
 
-                    // --- ISI ALBUM ---
-                    // Pastikan Model History punya field: images (List<String>) DAN imageUrls (List<String>)
                     if (!data.images.isNullOrEmpty() && !data.imageUrls.isNullOrEmpty()) {
-                        rvAlbumPreview.visibility = View.VISIBLE
+                        binding.rvAlbumPreview.visibility = View.VISIBLE
 
                         // Bersihkan list lama agar tidak duplikat
                         originalImageUrls.clear()
@@ -143,35 +100,32 @@ class EditHistoryActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                // Fallback jika API gagal (isi minimal dari Intent)
-                etYear.setText(intent.getStringExtra("TAHUN"))
-                etTitle.setText(intent.getStringExtra("JUDUL"))
+                binding.etYear.setText(intent.getStringExtra("TAHUN"))
+                binding.etTitle.setText(intent.getStringExtra("JUDUL"))
             }
         }
     }
 
     private fun setupListeners() {
-        btnCancel.setOnClickListener { finish() }
-        btnUpload.setOnClickListener { mainImageLauncher.launch("image/*") }
-        btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
-        btnSave.setOnClickListener { updateHistory() }
+        binding.btnCancel.setOnClickListener { finish() }
+        binding.btnUploadImage.setOnClickListener { mainImageLauncher.launch("image/*") }
+        binding.btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
+        binding.btnSave.setOnClickListener { updateHistory() }
     }
 
-    // --- LAUNCHER GAMBAR UTAMA ---
     private val mainImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            imgUploadIcon.visibility = View.GONE
-            imgPreviewReal.visibility = View.VISIBLE
-            imgPreviewReal.setImageURI(uri)
-            tvUploadLabel.text = "Gambar Baru"
+            binding.imgUploadIcon.visibility = View.GONE
+            binding.imgPreviewReal.visibility = View.VISIBLE
+            binding.imgPreviewReal.setImageURI(uri)
+            binding.tvUploadInfo.text = "Gambar Baru"
             selectedMainFile = FileUtils.getFileFromUri(this, uri)
         }
     }
 
-    // --- LAUNCHER GAMBAR ALBUM ---
     private val albumImageLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
-            rvAlbumPreview.visibility = View.VISIBLE
+            binding.rvAlbumPreview.visibility = View.VISIBLE
             for (uri in uris) {
                 val file = FileUtils.getFileFromUri(this, uri)
                 if (file != null) {
@@ -202,14 +156,13 @@ class EditHistoryActivity : AppCompatActivity() {
         previewAlbumUris.removeAt(position)
         albumAdapter.notifyItemRemoved(position)
         albumAdapter.notifyItemRangeChanged(position, previewAlbumUris.size)
-        if (previewAlbumUris.isEmpty()) rvAlbumPreview.visibility = View.GONE
+        if (previewAlbumUris.isEmpty()) binding.rvAlbumPreview.visibility = View.GONE
     }
 
-    // --- LOGIC UPDATE KE SERVER ---
     private fun updateHistory() {
-        val year = etYear.text.toString().trim()
-        val title = etTitle.text.toString().trim()
-        val desc = etDesc.text.toString().trim()
+        val year = binding.etYear.text.toString().trim()
+        val title = binding.etTitle.text.toString().trim()
+        val desc = binding.etDesc.text.toString().trim()
 
         if (year.isEmpty() || title.isEmpty()) {
             Toast.makeText(this, "Data wajib diisi", Toast.LENGTH_SHORT).show()
@@ -280,7 +233,7 @@ class EditHistoryActivity : AppCompatActivity() {
     }
 
     private fun setLoading(isLoading: Boolean) {
-        btnSave.isEnabled = !isLoading
-        btnSave.text = if (isLoading) "Updating..." else "Simpan Perubahan"
+        binding.btnSave.isEnabled = !isLoading
+        binding.btnSave.text = if (isLoading) "Updating..." else "Simpan Perubahan"
     }
 }

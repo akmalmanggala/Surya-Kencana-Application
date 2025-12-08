@@ -4,17 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.ActivityLoginBinding
 import com.example.suryakencanaapp.model.LoginRequest
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,31 +30,26 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // 2. Jika belum login, tampilkan layar
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // Init View & Listener
-        val etUsername = findViewById<TextInputEditText>(R.id.etUsername)
-        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
-        val btnLogin = findViewById<MaterialButton>(R.id.btnLogin)
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-
-        btnLogin.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val password = etPassword.text.toString().trim()
+        binding.btnLogin.setOnClickListener {
+            val username = binding.etUsername.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
 
             if (username.isNotEmpty() && password.isNotEmpty()) {
-                progressBar.visibility = View.VISIBLE
-                btnLogin.text = "Loading..."
-                btnLogin.isClickable = false
+                binding.progressBar.visibility = View.VISIBLE
+                binding.btnLogin.text = "Loading..."
+                binding.btnLogin.isClickable = false
 
-                performLogin(username, password, btnLogin, progressBar)
+                performLogin(username, password)
             } else {
                 Toast.makeText(this, "Wajib diisi", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun performLogin(username: String, pass: String, btn: MaterialButton, progress: ProgressBar) {
+    private fun performLogin(username: String, pass: String) {
         lifecycleScope.launch {
             try {
                 val request = LoginRequest(username, pass)
@@ -74,9 +69,9 @@ class LoginActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                progress.visibility = View.GONE
-                btn.text = "LOGIN"
-                btn.isClickable = true
+                binding.progressBar.visibility = View.GONE
+                binding.btnLogin.text = "LOGIN"
+                binding.btnLogin.isClickable = true
             }
         }
     }

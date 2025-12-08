@@ -3,21 +3,16 @@ package com.example.suryakencanaapp
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.suryakencanaapp.adapter.AlbumImageAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.ActivityAddProdukBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -27,107 +22,70 @@ import java.io.File
 
 class EditProdukActivity : AppCompatActivity() {
 
-    // UI Variables
-    private lateinit var etName: TextInputEditText
-    private lateinit var etPrice: TextInputEditText
-    private lateinit var etDesc: TextInputEditText
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
-    private lateinit var btnUpload: LinearLayout
-    private lateinit var tvUploadLabel: TextView
-    private lateinit var tvPageTitle: TextView
-
-    // Image UI
-    private lateinit var imgUploadIcon: ImageView
-    private lateinit var imgPreviewReal: ImageView
-
-    // --- TAMBAHAN UNTUK ALBUM ---
-    private lateinit var btnUploadAlbum: LinearLayout
-    private lateinit var rvAlbumPreview: RecyclerView
+    private lateinit var binding: ActivityAddProdukBinding
     private lateinit var albumAdapter: AlbumImageAdapter
 
-    // List untuk menampung data album
-    private val selectedNewAlbumFiles = mutableListOf<File>() // Gambar baru yang mau diupload
-    private val previewAlbumUris = mutableListOf<Uri>()       // Untuk tampil di layar
-    private val deletedImagePaths = mutableListOf<String>()   // Path gambar lama yang dihapus
-    private val originalImageUrls = mutableListOf<String>()   // Helper path lama
+    private val selectedNewAlbumFiles = mutableListOf<File>()
+    private val previewAlbumUris = mutableListOf<Uri>()
+    private val deletedImagePaths = mutableListOf<String>()
+    private val originalImageUrls = mutableListOf<String>()
 
-    // Data
     private var productId: Int = 0
     private var selectedFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_produk)
+
+        binding = ActivityAddProdukBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initViews()
 
         try {
-            tvPageTitle.text = "Edit Produk"
+            binding.tvPageTitle.text = "Edit Produk"
         } catch (e: Exception) { }
 
-        btnSave.text = "Simpan Perubahan"
+        binding.btnSave.text = "Simpan Perubahan"
 
         loadDataFromIntent()
-        loadAlbumFromApi() // Fungsi ini yang kita perbaiki
+        loadAlbumFromApi()
         setupListeners()
     }
 
     private fun initViews() {
-        etName = findViewById(R.id.etName)
-        etPrice = findViewById(R.id.etPrice)
-        etDesc = findViewById(R.id.etDesc)
-        btnSave = findViewById(R.id.btnSave)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnUpload = findViewById(R.id.btnUploadImage)
-        tvUploadLabel = findViewById(R.id.tvUploadInfo)
-
-        imgUploadIcon = findViewById(R.id.imgUploadIcon)
-        imgPreviewReal = findViewById(R.id.imgPreviewReal)
-        tvPageTitle = findViewById(R.id.tvPageTitle)
-
-        // Init Album UI
-        btnUploadAlbum = findViewById(R.id.btnUploadAlbum)
-        rvAlbumPreview = findViewById(R.id.rvAlbumPreview)
-
-        rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-
-        // --- TAMBAHAN OPTIMASI RECYCLERVIEW ---
-        rvAlbumPreview.setHasFixedSize(true) // Agar layout tidak hitung ulang ukuran terus menerus
-        rvAlbumPreview.setItemViewCacheSize(10) // Simpan 10 item di memori agar tidak reload saat scroll
-// --------------------------------------
+        binding.rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvAlbumPreview.setHasFixedSize(true)
+        binding.rvAlbumPreview.setItemViewCacheSize(10)
 
         albumAdapter = AlbumImageAdapter(previewAlbumUris) { position ->
             handleRemoveAlbumItem(position)
         }
-        rvAlbumPreview.adapter = albumAdapter
+        binding.rvAlbumPreview.adapter = albumAdapter
     }
 
     private fun loadDataFromIntent() {
         productId = intent.getIntExtra("ID", 0)
-        etName.setText(intent.getStringExtra("NAME"))
-        etDesc.setText(intent.getStringExtra("DESC"))
+        binding.etName.setText(intent.getStringExtra("NAME"))
+        binding.etDesc.setText(intent.getStringExtra("DESC"))
 
         val rawPrice = intent.getStringExtra("PRICE") ?: "0"
         val cleanPrice = rawPrice.substringBefore(".")
-        etPrice.setText(cleanPrice)
+        binding.etPrice.setText(cleanPrice)
 
         val oldImageUrl = intent.getStringExtra("IMAGE_URL")
         if (!oldImageUrl.isNullOrEmpty()) {
-            imgUploadIcon.visibility = View.GONE
-            imgPreviewReal.visibility = View.VISIBLE
+            binding.imgUploadIcon.visibility = View.GONE
+            binding.imgPreviewReal.visibility = View.VISIBLE
 
-            // Load Gambar Utama (Sudah benar pakai URL lengkap dari Intent)
             Glide.with(this)
                 .load(oldImageUrl)
                 .placeholder(R.drawable.package_2_24dp_ffffff_fill0_wght400_grad0_opsz24)
-                .into(imgPreviewReal)
+                .into(binding.imgPreviewReal)
 
-            tvUploadLabel.text = "Gambar Saat Ini (Ketuk untuk ganti)"
+            binding.tvUploadInfo.text = "Gambar Saat Ini (Ketuk untuk ganti)"
         }
     }
 
-    // --- PERBAIKAN UTAMA ADA DI SINI ---
     private fun loadAlbumFromApi() {
         lifecycleScope.launch {
             try {
@@ -135,9 +93,8 @@ class EditProdukActivity : AppCompatActivity() {
                 if (response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
-                    // Pastikan API mengirim images (path) DAN imageUrls (link lengkap)
                     if (!data.images.isNullOrEmpty() && !data.imageUrls.isNullOrEmpty()) {
-                        rvAlbumPreview.visibility = View.VISIBLE
+                        binding.rvAlbumPreview.visibility = View.VISIBLE
 
                         // 1. Simpan PATH (relatif) untuk keperluan DELETE nanti
                         // Contoh isi: "products/foto1.jpg"
@@ -163,18 +120,18 @@ class EditProdukActivity : AppCompatActivity() {
     // -----------------------------------
 
     private fun setupListeners() {
-        btnCancel.setOnClickListener { finish() }
-        btnUpload.setOnClickListener { openGallery() }
-        btnSave.setOnClickListener { updateProduct() }
-        btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
+        binding.btnCancel.setOnClickListener { finish() }
+        binding.btnUploadImage.setOnClickListener { openGallery() }
+        binding.btnSave.setOnClickListener { updateProduct() }
+        binding.btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
     }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            imgUploadIcon.visibility = View.GONE
-            imgPreviewReal.visibility = View.VISIBLE
-            imgPreviewReal.setImageURI(uri)
-            tvUploadLabel.text = "Gambar Baru Terpilih"
+            binding.imgUploadIcon.visibility = View.GONE
+            binding.imgPreviewReal.visibility = View.VISIBLE
+            binding.imgPreviewReal.setImageURI(uri)
+            binding.tvUploadInfo.text = "Gambar Baru Terpilih"
             selectedFile = FileUtils.getFileFromUri(this, uri)
         }
     }
@@ -185,7 +142,7 @@ class EditProdukActivity : AppCompatActivity() {
 
     private val albumImageLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
-            rvAlbumPreview.visibility = View.VISIBLE
+            binding.rvAlbumPreview.visibility = View.VISIBLE
             for (uri in uris) {
                 val file = FileUtils.getFileFromUri(this, uri)
                 if (file != null) {
@@ -215,13 +172,13 @@ class EditProdukActivity : AppCompatActivity() {
         previewAlbumUris.removeAt(position)
         albumAdapter.notifyItemRemoved(position)
         albumAdapter.notifyItemRangeChanged(position, previewAlbumUris.size)
-        if (previewAlbumUris.isEmpty()) rvAlbumPreview.visibility = View.GONE
+        if (previewAlbumUris.isEmpty()) binding.rvAlbumPreview.visibility = View.GONE
     }
 
     private fun updateProduct() {
-        val name = etName.text.toString().trim()
-        val priceRaw = etPrice.text.toString().trim()
-        val desc = etDesc.text.toString().trim()
+        val name = binding.etName.text.toString().trim()
+        val priceRaw = binding.etPrice.text.toString().trim()
+        val desc = binding.etDesc.text.toString().trim()
 
         if (name.isEmpty() || priceRaw.isEmpty()) {
             Toast.makeText(this, "Data wajib diisi", Toast.LENGTH_SHORT).show()
@@ -294,11 +251,11 @@ class EditProdukActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
-            btnSave.isEnabled = false
-            btnSave.text = "Updating..."
+            binding.btnSave.isEnabled = false
+            binding.btnSave.text = "Updating..."
         } else {
-            btnSave.isEnabled = true
-            btnSave.text = "Simpan Perubahan"
+            binding.btnSave.isEnabled = true
+            binding.btnSave.text = "Simpan Perubahan"
         }
     }
 }

@@ -4,17 +4,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.ActivityAddEditClientBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -24,49 +20,28 @@ import java.io.File
 
 class AddClientActivity : AppCompatActivity() {
 
-    // Variabel UI
-    private lateinit var etClientName: TextInputEditText
-    private lateinit var etInstitution: TextInputEditText
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
-    private lateinit var btnUpload: LinearLayout
-    private lateinit var tvUploadLabel: TextView
-    private lateinit var tvUploadLabel2: TextView
-    private lateinit var imgUploadIcon: ImageView // Ikon panah
-    private lateinit var imgPreviewReal: ImageView // Preview gambar asli
-    private lateinit var tvPageTitle: TextView
-
-
-    // Variabel Data
+    private lateinit var binding: ActivityAddEditClientBinding
     private var selectedFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_edit_client) // Pastikan nama XML benar
+
+        binding = ActivityAddEditClientBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initViews()
         setupListeners()
     }
 
     private fun initViews() {
-        etClientName = findViewById(R.id.etClientName)
-        etInstitution = findViewById(R.id.etInstitution)
-        btnSave = findViewById(R.id.btnSave)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnUpload = findViewById(R.id.btnUploadLogo)
-        tvUploadLabel = findViewById(R.id.tvUploadInfo)
-        tvUploadLabel2 = findViewById(R.id.tvUploadInfo2)
-        imgUploadIcon = findViewById(R.id.imgUploadIcon)
-        imgPreviewReal = findViewById(R.id.imgPreviewReal)
-        tvPageTitle = findViewById(R.id.tvPageTitle)
-        tvPageTitle.text = "Tambah Klien Baru"
-        btnSave.text = "Tambah Klien"
+        binding.tvPageTitle.text = "Tambah Klien Baru"
+        binding.btnSave.text = "Tambah Klien"
     }
 
     private fun setupListeners() {
-        btnCancel.setOnClickListener { finish() }
-        btnUpload.setOnClickListener { openGallery() }
-        btnSave.setOnClickListener { uploadClient() }
+        binding.btnCancel.setOnClickListener { finish() }
+        binding.btnUploadLogo.setOnClickListener { openGallery() }
+        binding.btnSave.setOnClickListener { uploadClient() }
     }
 
     // --- LOGIC BUKA GALERI ---
@@ -76,15 +51,15 @@ class AddClientActivity : AppCompatActivity() {
             try {
                 // 1. UPDATE UI (TAMPILAN)
                 // Sembunyikan ikon panah upload
-                imgUploadIcon.visibility = View.GONE
+                binding.imgUploadIcon.visibility = View.GONE
 
                 // Munculkan ImageView preview dan isi gambarnya
-                imgPreviewReal.visibility = View.VISIBLE
-                imgPreviewReal.setImageURI(uri)
+                binding.imgPreviewReal.visibility = View.VISIBLE
+                binding.imgPreviewReal.setImageURI(uri)
 
                 // Ubah teks label agar user tahu gambar sudah masuk
-                tvUploadLabel.text = "Gambar Utama Terpilih"
-                tvUploadLabel2.text = "Tekan lagi untuk mengganti gambar"
+                binding.tvUploadInfo.text = "Gambar Utama Terpilih"
+                binding.tvUploadInfo2.text = "Tekan lagi untuk mengganti gambar"
 
 
                 // 2. PROSES DATA (FILE)
@@ -109,8 +84,8 @@ class AddClientActivity : AppCompatActivity() {
 
     // --- LOGIC UPLOAD KE SERVER ---
     private fun uploadClient() {
-        val name = etClientName.text.toString().trim()
-        val institution = etInstitution.text.toString().trim()
+        val name = binding.etClientName.text.toString().trim()
+        val institution = binding.etInstitution.text.toString().trim()
 
         // 1. VALIDASI
         if (name.isEmpty() || institution.isEmpty() || selectedFile == null) {
@@ -165,11 +140,11 @@ class AddClientActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
-            btnSave.isEnabled = false
-            btnSave.text = "Uploading..."
+            binding.btnSave.isEnabled = false
+            binding.btnSave.text = "Uploading..."
         } else {
-            btnSave.isEnabled = true
-            btnSave.text = "Tambah Klien"
+            binding.btnSave.isEnabled = true
+            binding.btnSave.text = "Tambah Klien"
         }
     }
 }

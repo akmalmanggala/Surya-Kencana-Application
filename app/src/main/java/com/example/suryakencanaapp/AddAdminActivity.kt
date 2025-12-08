@@ -1,35 +1,28 @@
 package com.example.suryakencanaapp
 
 import android.os.Bundle
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
-import com.google.android.material.textfield.TextInputEditText
+import com.example.suryakencanaapp.databinding.ActivityAddAdminBinding
 import kotlinx.coroutines.launch
 
 class AddAdminActivity : AppCompatActivity() {
 
-    private lateinit var etUsername: TextInputEditText
-    private lateinit var etPassword: TextInputEditText
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
+    private lateinit var binding: ActivityAddAdminBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_admin)
 
-        etUsername = findViewById(R.id.etUsername)
-        etPassword = findViewById(R.id.etPassword)
-        btnSave = findViewById(R.id.btnSave)
-        btnCancel = findViewById(R.id.btnCancel)
+        binding = ActivityAddAdminBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        btnCancel.setOnClickListener { finish() }
+        binding.btnCancel.setOnClickListener { finish() }
 
-        btnSave.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val password = etPassword.text.toString().trim()
+        binding.btnSave.setOnClickListener {
+            val username = binding.etUsername.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Username dan Password wajib diisi", Toast.LENGTH_SHORT).show()
@@ -51,8 +44,8 @@ class AddAdminActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                btnSave.isEnabled = false
-                btnSave.text = "Uploading..."
+                binding.btnSave.isEnabled = false
+                binding.btnSave.text = "Uploading..."
 
                 val response = ApiClient.instance.addAdmin("Bearer $token", user, pass)
 
@@ -61,13 +54,13 @@ class AddAdminActivity : AppCompatActivity() {
                     finish()
                 } else {
                     Toast.makeText(this@AddAdminActivity, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    btnSave.isEnabled = true
-                    btnSave.text = "Tambah Admin"
+                    binding.btnSave.isEnabled = true
+                    binding.btnSave.text = "Tambah Admin"
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@AddAdminActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                btnSave.isEnabled = true
-                btnSave.text = "Tambah Admin"
+                binding.btnSave.isEnabled = true
+                binding.btnSave.text = "Tambah Admin"
             }
         }
     }

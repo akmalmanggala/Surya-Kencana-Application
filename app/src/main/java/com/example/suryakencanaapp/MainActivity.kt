@@ -7,13 +7,9 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
@@ -21,59 +17,58 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.navigation.NavigationView
+import com.example.suryakencanaapp.databinding.ActivityMainBinding // Binding Activity
+import com.example.suryakencanaapp.databinding.NavHeaderBinding   // Binding Header Sidebar
 
 class MainActivity : AppCompatActivity() {
 
+    // 1. Ganti variabel View lama dengan Binding
+    private lateinit var binding: ActivityMainBinding
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var drawerLayout: DrawerLayout
     private lateinit var navController: NavController
-    private lateinit var navView: NavigationView // Tambahkan ini sebagai variabel global kelas
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        // 2. Inflate menggunakan Binding
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        drawerLayout = findViewById(R.id.drawer_layout)
-        navView = findViewById(R.id.nav_view) // Inisialisasi di sini
+        // Akses Toolbar lewat binding
+        setSupportActionBar(binding.toolbar)
 
         // --- SETUP NAV CONTROLLER ---
+        // (Fragment Manager tetap butuh ID, bisa pakai R.id atau binding.id.id)
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
         // --- SETUP HEADER & ROLE ---
-        setupHeaderAndRole(navView)
+        setupHeaderAndRole()
 
         // --- SETUP APP BAR CONFIGURATION ---
+        // Akses DrawerLayout lewat binding
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_dashboard, R.id.nav_produk, R.id.nav_klien, R.id.nav_testimoni,
                 R.id.nav_visi_misi, R.id.nav_riwayat, R.id.nav_hero,
                 R.id.nav_kontak, R.id.nav_pengaturan, R.id.nav_admin_management
-            ), drawerLayout
+            ), binding.drawerLayout
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        binding.navView.setupWithNavController(navController)
 
-        // --- [BARU] PAKSA HIGHLIGHT MENU SAAT PINDAH HALAMAN ---
+        // --- [LISTENER] HIGHLIGHT MENU SAAT PINDAH HALAMAN ---
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            // 1. Cari item menu berdasarkan ID halaman yang sedang dibuka
-            val menuItem = findMenuItemInNav(navView.menu, destination.id)
-
-            // 2. Jika ketemu, aktifkan (Checked)
+            val menuItem = findMenuItemInNav(binding.navView.menu, destination.id)
             if (menuItem != null) {
                 menuItem.isChecked = true
             }
         }
-        // -------------------------------------------------------
 
-        // --- CUSTOM NAVIGATION LISTENER (YANG LAMA TETAP ADA) ---
-        navView.setNavigationItemSelectedListener { item ->
+        // --- CUSTOM NAVIGATION LISTENER ---
+        binding.navView.setNavigationItemSelectedListener { item ->
             val id = item.itemId
 
             if (navController.currentDestination?.id == id) {
@@ -103,25 +98,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         // --- LOGOUT HANDLER ---
-        val btnLogoutSidebar = findViewById<Button>(R.id.btnLogoutSidebar)
-        btnLogoutSidebar.setOnClickListener {
+        // Akses tombol logout lewat binding
+        binding.btnLogoutSidebar.setOnClickListener {
             logout()
-            drawerLayout.closeDrawer(GravityCompat.START)
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
         }
     }
 
-    // --- [BARU] FUNGSI PENCARI MENU (REKURSIF) ---
-    // Fungsi ini bisa mencari menu sampai ke dalam sub-menu terdalam
     private fun findMenuItemInNav(menu: Menu, targetId: Int): MenuItem? {
         for (i in 0 until menu.size()) {
             val item = menu.getItem(i)
-
-            // Cek apakah item ini yang dicari?
-            if (item.itemId == targetId) {
-                return item
-            }
-
-            // Jika item ini punya sub-menu, cari lagi di dalamnya
+            if (item.itemId == targetId) return item
             if (item.hasSubMenu()) {
                 val result = findMenuItemInNav(item.subMenu!!, targetId)
                 if (result != null) return result
@@ -132,33 +119,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun closeDrawerSmoothly() {
         Handler(Looper.getMainLooper()).postDelayed({
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START)
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
             }
         }, 300)
     }
 
-    private fun setupHeaderAndRole(navView: NavigationView) {
-        val headerView = navView.getHeaderView(0)
-        val tvHeaderName = headerView.findViewById<TextView>(R.id.tvHeaderName)
-        val tvHeaderRole = headerView.findViewById<TextView>(R.id.tvHeaderRole)
+    private fun setupHeaderAndRole() {
+        // Akses Header View menggunakan Binding khusus Header
+        // (Pastikan nav_header.xml valid agar NavHeaderBinding ter-generate)
+        val headerView = binding.navView.getHeaderView(0)
+        val headerBinding = NavHeaderBinding.bind(headerView)
 
         val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val userRoleRaw = sharedPref.getString("ROLE", "") ?: ""
         val username = sharedPref.getString("USERNAME", "Admin")
 
-        val menu = navView.menu
+        // Logic Admin Menu
+        val menu = binding.navView.menu
         val adminMenu = menu.findItem(R.id.nav_admin_management)
         adminMenu?.isVisible = userRoleRaw.equals("superadmin", ignoreCase = true)
 
-        tvHeaderName.text = "Halo, $username"
+        // Set Text lewat Header Binding
+        headerBinding.tvHeaderName.text = "Halo, $username"
 
         val formattedRole = if (userRoleRaw.isNotEmpty()) {
             userRoleRaw.lowercase().replaceFirstChar { it.uppercase() }
         } else {
             "User"
         }
-        tvHeaderRole.text = "$formattedRole"
+        headerBinding.tvHeaderRole.text = "$formattedRole"
     }
 
     override fun onSupportNavigateUp(): Boolean {

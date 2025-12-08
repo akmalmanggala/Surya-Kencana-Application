@@ -7,58 +7,59 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.TextView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.ClientAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.FragmentKlienBinding
 import com.example.suryakencanaapp.model.Client
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
-class KlienFragment : Fragment(R.layout.fragment_klien) {
+class KlienFragment : Fragment() {
 
-    private lateinit var rvClient: RecyclerView
+    private var _binding: FragmentKlienBinding? = null
+    private val binding get() = _binding!!
     private lateinit var clientAdapter: ClientAdapter
-    private lateinit var etSearch: EditText
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var tvEmptyState: TextView
-
-    // 1. Master Data List
     private var allClientList: List<Client> = listOf()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentKlienBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        tvEmptyState = view.findViewById(R.id.tvEmptyState)
-        rvClient = view.findViewById(R.id.rvClient)
-        etSearch = view.findViewById(R.id.etSearch)
-
-        rvClient.layoutManager = GridLayoutManager(context, 2)
+        binding.rvClient.layoutManager = GridLayoutManager(context, 2)
 
         clientAdapter = ClientAdapter(listOf()) { clientToDelete ->
             showDeleteConfirmation(clientToDelete)
         }
-        rvClient.adapter = clientAdapter
+        binding.rvClient.adapter = clientAdapter
 
-        // Listener Refresh
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchClients()
         }
 
-        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddClient)
-        btnAdd.setOnClickListener {
+        binding.btnAddClient.setOnClickListener {
             startActivity(Intent(requireContext(), AddClientActivity::class.java))
         }
 
         setupSearchListener()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onResume() {
@@ -67,12 +68,11 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
     }
 
     private fun setupSearchListener() {
-        etSearch.addTextChangedListener(object : TextWatcher {
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                // 2. Filter Langsung (Tanpa Delay)
                 val keyword = s.toString().trim()
                 filterData(keyword)
             }
@@ -98,26 +98,25 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
         clientAdapter.updateData(list)
 
         if (list.isEmpty()) {
-            rvClient.visibility = View.GONE
-            tvEmptyState.visibility = View.VISIBLE
+            binding.rvClient.visibility = View.GONE
+            binding.tvEmptyState.visibility = View.VISIBLE
 
             if (keyword.isNotEmpty()) {
-                tvEmptyState.text = "Klien tidak ditemukan"
+                binding.tvEmptyState.text = "Klien tidak ditemukan"
             } else {
-                tvEmptyState.text = "Belum ada Klien"
+                binding.tvEmptyState.text = "Belum ada Klien"
             }
         } else {
-            rvClient.visibility = View.VISIBLE
-            tvEmptyState.visibility = View.GONE
+            binding.rvClient.visibility = View.VISIBLE
+            binding.tvEmptyState.visibility = View.GONE
         }
     }
 
     private fun fetchClients() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
 
         lifecycleScope.launch {
             try {
-                // 5. Ambil SEMUA data (param null)
                 val response = ApiClient.instance.getClients(null)
 
                 if (response.isSuccessful && response.body() != null) {
@@ -126,8 +125,7 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
                     // Simpan ke Master List
                     allClientList = listData.sortedByDescending { it.id }
 
-                    // Tampilkan data sesuai search bar saat ini
-                    val currentKeyword = etSearch.text.toString().trim()
+                    val currentKeyword = binding.etSearch.text.toString().trim()
                     filterData(currentKeyword)
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -135,7 +133,7 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
             } catch (e: Exception) {
                 Log.e("CLIENT_API", "Error: ${e.message}")
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }

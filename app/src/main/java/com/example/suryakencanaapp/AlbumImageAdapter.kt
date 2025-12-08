@@ -2,28 +2,22 @@ package com.example.suryakencanaapp.adapter
 
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.suryakencanaapp.R
+import com.example.suryakencanaapp.databinding.ItemHeroImageBinding
 
 class AlbumImageAdapter(
     private var uriList: MutableList<Uri>,
     private val onRemoveClick: (Int) -> Unit
 ) : RecyclerView.Adapter<AlbumImageAdapter.ViewHolder>() {
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val img: ImageView = view.findViewById(R.id.imgHero)
-        val btnDelete: ImageButton = view.findViewById(R.id.btnDeleteImage)
-    }
+    class ViewHolder(val binding: ItemHeroImageBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_hero_image, parent, false)
-        return ViewHolder(view)
+        val binding = ItemHeroImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -36,10 +30,10 @@ class AlbumImageAdapter(
             .thumbnail(0.1f)
             .centerCrop()
             .error(android.R.drawable.stat_notify_error)
-            .into(holder.img)
+            .into(holder.binding.imgHero)
 
         // --- PERBAIKAN BUG HAPUS ---
-        holder.btnDelete.setOnClickListener {
+        holder.binding.btnDeleteImage.setOnClickListener {
             // Gunakan 'adapterPosition' agar selalu dapat posisi terbaru saat diklik
             val currentPosition = holder.adapterPosition
 

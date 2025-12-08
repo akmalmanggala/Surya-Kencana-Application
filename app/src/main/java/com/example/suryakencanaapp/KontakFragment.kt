@@ -3,77 +3,72 @@ package com.example.suryakencanaapp
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.api.ApiClient
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
+import com.example.suryakencanaapp.databinding.FragmentKontakBinding
 import kotlinx.coroutines.launch
 
-class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML benar
+class KontakFragment : Fragment() {
 
-    // UI Variables
-    private lateinit var etEmail: TextInputEditText
-    private lateinit var etWhatsapp: TextInputEditText
-    private lateinit var etAddress: TextInputEditText
-    private lateinit var etMaps: TextInputEditText
-    private lateinit var btnSave: MaterialButton
-    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private var _binding: FragmentKontakBinding? = null
+    private val binding get() = _binding!!
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentKontakBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Inisialisasi View
-        etEmail = view.findViewById(R.id.etEmail)
-        etWhatsapp = view.findViewById(R.id.etWhatsapp)
-        etAddress = view.findViewById(R.id.etAddress)
-        etMaps = view.findViewById(R.id.etMaps)
-        btnSave = view.findViewById(R.id.btnSaveContact)
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
-
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchContactData()
         }
 
-        // 2. Button Save Listener
-        btnSave.setOnClickListener {
+        binding.btnSaveContact.setOnClickListener {
             saveContactData()
         }
 
-        // 3. Ambil Data Awal
         fetchContactData()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onResume() {
         super.onResume()
-        swipeRefresh.post {
+        binding.swipeRefresh.post {
             fetchContactData()
         }
     }
 
     private fun fetchContactData() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
-                // Panggil API
                 val response = ApiClient.instance.getContact()
 
                 if (response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
 
                     if (listData.isNotEmpty()) {
-                        // Ambil data pertama (index 0)
                         val data = listData[0]
 
-                        // Isi Form
-                        etEmail.setText(data.email)
-                        etWhatsapp.setText(data.phone)
-                        etAddress.setText(data.address)
-                        etMaps.setText(data.mapUrl)
+                        binding.etEmail.setText(data.email)
+                        binding.etWhatsapp.setText(data.phone)
+                        binding.etAddress.setText(data.address)
+                        binding.etMaps.setText(data.mapUrl)
                     }
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -82,16 +77,16 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
                 Log.e("CONTACT_API", "Error: ${e.message}")
                 Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }
 
     private fun saveContactData() {
-        val email = etEmail.text.toString().trim()
-        val phone = etWhatsapp.text.toString().trim()
-        val address = etAddress.text.toString().trim()
-        val maps = etMaps.text.toString().trim()
+        val email = binding.etEmail.text.toString().trim()
+        val phone = binding.etWhatsapp.text.toString().trim()
+        val address = binding.etAddress.text.toString().trim()
+        val maps = binding.etMaps.text.toString().trim()
 
         // Validasi sederhana
         if (email.isEmpty() || phone.isEmpty() || address.isEmpty()) {
@@ -105,10 +100,9 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
 
         lifecycleScope.launch {
             try {
-                btnSave.isEnabled = false
-                btnSave.text = "Updating..."
+                binding.btnSaveContact.isEnabled = false
+                binding.btnSaveContact.text = "Updating..."
 
-                // Kirim ke API
                 val response = ApiClient.instance.updateContact(
                     "Bearer $token",
                     email,
@@ -129,8 +123,8 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                btnSave.isEnabled = true
-                btnSave.text = "Simpan Perubahan"
+                binding.btnSaveContact.isEnabled = true
+                binding.btnSaveContact.text = "Simpan Perubahan"
             }
         }
     }

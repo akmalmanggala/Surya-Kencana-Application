@@ -51,7 +51,7 @@ object FileUtils {
             BitmapFactory.decodeFile(file.path, options)
 
             // 2. Hitung Skala (Resize tetap dilakukan agar HP tidak berat)
-            options.inSampleSize = calculateInSampleSize(options, 1280, 1280)
+            options.inSampleSize = calculateInSampleSize(options, 1024, 1024)
 
             // 3. Decode Ulang
             options.inJustDecodeBounds = false

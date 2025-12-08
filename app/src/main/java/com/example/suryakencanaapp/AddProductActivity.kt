@@ -1,24 +1,18 @@
 package com.example.suryakencanaapp
 
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.suryakencanaapp.adapter.AlbumImageAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.ActivityAddProdukBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -28,78 +22,53 @@ import java.io.File
 
 class AddProductActivity : AppCompatActivity() {
 
-    // Variabel UI
-    private lateinit var etName: TextInputEditText
-    private lateinit var etPrice: TextInputEditText
-    private lateinit var etDesc: TextInputEditText
-    private lateinit var btnSave: Button
-    private lateinit var btnCancel: Button
-    private lateinit var btnUpload: LinearLayout
-    private lateinit var tvUploadLabel: TextView
-
-    // --- VARIABEL UNTUK PREVIEW ---
-    private lateinit var imgUploadIcon: ImageView
-    private lateinit var imgPreviewReal: ImageView
-    private lateinit var btnUploadAlbum: LinearLayout
-    private lateinit var rvAlbumPreview: RecyclerView
-    private lateinit var albumAdapter: AlbumImageAdapter
-    private lateinit var tvUploadInfo2: TextView
+    private lateinit var binding: ActivityAddProdukBinding
 
     private var selectedFile: File? = null
     private val selectedAlbumFiles = mutableListOf<File>() // List file album
     private val selectedAlbumUris = mutableListOf<Uri>()
+    private lateinit var albumAdapter: AlbumImageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_produk) // Pastikan nama XML benar
 
+        // 3. Inflate Layout menggunakan Binding
+        binding = ActivityAddProdukBinding.inflate(layoutInflater)
+        setContentView(binding.root) // Set content view ke root milik binding
+
+        // Inisialisasi tidak perlu findViewById lagi
         initViews()
         setupListeners()
     }
 
     private fun initViews() {
-        etName = findViewById(R.id.etName)
-        etPrice = findViewById(R.id.etPrice)
-        etDesc = findViewById(R.id.etDesc)
-        btnSave = findViewById(R.id.btnSave)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnUpload = findViewById(R.id.btnUploadImage)
-        tvUploadLabel = findViewById(R.id.tvUploadInfo)
-        tvUploadInfo2 = findViewById(R.id.tvUploadInfo2)
+        // Akses view langsung lewat 'binding.idView'
+        // Contoh: R.id.rvAlbumPreview otomatis jadi binding.rvAlbumPreview
 
+        binding.rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        // --- INISIALISASI IMAGE VIEW ---
-        imgUploadIcon = findViewById(R.id.imgUploadIcon)
-        imgPreviewReal = findViewById(R.id.imgPreviewReal)
-
-        btnUploadAlbum = findViewById(R.id.btnUploadAlbum)
-        rvAlbumPreview = findViewById(R.id.rvAlbumPreview)
-
-        rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         albumAdapter = AlbumImageAdapter(selectedAlbumUris) { position ->
-            // Logic Hapus Item dari Album
             selectedAlbumUris.removeAt(position)
             selectedAlbumFiles.removeAt(position)
             albumAdapter.notifyItemRemoved(position)
 
-            // Sembunyikan RecyclerView jika kosong
             if (selectedAlbumUris.isEmpty()) {
-                rvAlbumPreview.visibility = View.GONE
+                binding.rvAlbumPreview.visibility = View.GONE
             }
         }
-        rvAlbumPreview.adapter = albumAdapter
+        binding.rvAlbumPreview.adapter = albumAdapter
     }
 
     private fun setupListeners() {
-        btnCancel.setOnClickListener { finish() }
-        btnSave.setOnClickListener { uploadProduct() }
+        binding.btnCancel.setOnClickListener { finish() }
+        binding.btnSave.setOnClickListener { uploadProduct() }
         // Listener Gambar UTAMA (Single)
-        btnUpload.setOnClickListener {
+        binding.btnUploadImage.setOnClickListener {
             mainImageLauncher.launch("image/*")
         }
 
         // Listener Gambar ALBUM (Multiple)
-        btnUploadAlbum.setOnClickListener {
+        binding.btnUploadAlbum.setOnClickListener {
             albumImageLauncher.launch("image/*")
         }
 
@@ -109,11 +78,11 @@ class AddProductActivity : AppCompatActivity() {
     private val mainImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             // Update UI Preview Utama
-            imgUploadIcon.visibility = View.GONE
-            imgPreviewReal.visibility = View.VISIBLE
-            imgPreviewReal.setImageURI(uri)
-            tvUploadLabel.text = "Gambar Utama Terpilih"
-            tvUploadInfo2.text = "Tekan lagi untuk mengganti gambar"
+            binding.imgUploadIcon.visibility = View.GONE
+            binding.imgPreviewReal.visibility = View.VISIBLE
+            binding.imgPreviewReal.setImageURI(uri)
+            binding.tvUploadInfo.text = "Gambar Utama Terpilih"
+            binding.tvUploadInfo2.text = "Tekan lagi untuk mengganti gambar"
 
             // Konversi ke File
             selectedFile = FileUtils.getFileFromUri(this, uri)
@@ -125,7 +94,7 @@ class AddProductActivity : AppCompatActivity() {
     private val albumImageLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
             // Munculkan RecyclerView Album
-            rvAlbumPreview.visibility = View.VISIBLE
+            binding.rvAlbumPreview.visibility = View.VISIBLE
 
             for (uri in uris) {
                 // Konversi setiap gambar jadi File
@@ -144,9 +113,9 @@ class AddProductActivity : AppCompatActivity() {
 
     // --- LOGIC UPLOAD (Sama seperti sebelumnya) ---
     private fun uploadProduct() {
-        val name = etName.text.toString().trim()
-        val priceRaw = etPrice.text.toString().trim()
-        val desc = etDesc.text.toString().trim()
+        val name = binding.etName.text.toString().trim()
+        val priceRaw = binding.etPrice.text.toString().trim()
+        val desc = binding.etDesc.text.toString().trim()
 
         // Validasi dasar (Main Image wajib, Album opsional)
         if (name.isEmpty() || priceRaw.isEmpty() || desc.isEmpty() || selectedFile == null) {
@@ -221,11 +190,11 @@ class AddProductActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
-            btnSave.isEnabled = false
-            btnSave.text = "Uploading..."
+            binding.btnSave.isEnabled = false
+            binding.btnSave.text = "Uploading..."
         } else {
-            btnSave.isEnabled = true
-            btnSave.text = "Tambah Produk"
+            binding.btnSave.isEnabled = true
+            binding.btnSave.text = "Tambah Produk"
         }
     }
 }

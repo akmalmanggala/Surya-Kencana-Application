@@ -7,46 +7,42 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.TextView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.HistoryAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.FragmentRiwayatBinding
 import com.example.suryakencanaapp.model.History
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
+class RiwayatFragment : Fragment() {
 
-    private lateinit var rvHistory: RecyclerView
+    private var _binding: FragmentRiwayatBinding? = null
+    private val binding get() = _binding!!
     private lateinit var historyAdapter: HistoryAdapter
-    private lateinit var etSearch: EditText
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var tvEmptyState: TextView
-
-    // List untuk menyimpan semua data (Master Data)
     private var allHistoryList: List<History> = listOf()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRiwayatBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Init Views
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        rvHistory = view.findViewById(R.id.rvRiwayat)
-        tvEmptyState = view.findViewById(R.id.tvEmptyState)
-        etSearch = view.findViewById(R.id.etSearch)
+        binding.rvRiwayat.layoutManager = LinearLayoutManager(context)
 
-        rvHistory.layoutManager = LinearLayoutManager(context)
-
-        // 2. Init Adapter
         historyAdapter = HistoryAdapter(
             listOf(),
             onDeleteClick = { history -> showDeleteConfirmation(history) },
@@ -60,31 +56,31 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
                 startActivity(intent)
             }
         )
-        rvHistory.adapter = historyAdapter
+        binding.rvRiwayat.adapter = historyAdapter
 
-        // 3. Listener Refresh
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchHistories()
         }
 
-        // 4. Tombol Tambah
-        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddRiwayat)
-        btnAdd.setOnClickListener {
+        binding.btnAddRiwayat.setOnClickListener {
             startActivity(Intent(requireContext(), AddHistoryActivity::class.java))
         }
 
-        // 5. Setup Pencarian
         setupSearchListener()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onResume() {
         super.onResume()
-        // Fetch data setiap halaman dibuka (agar data selalu fresh setelah edit/add)
         fetchHistories()
     }
 
     private fun setupSearchListener() {
-        etSearch.addTextChangedListener(object : TextWatcher {
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
@@ -116,35 +112,32 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
         historyAdapter.updateData(list)
 
         if (list.isEmpty()) {
-            rvHistory.visibility = View.GONE
-            tvEmptyState.visibility = View.VISIBLE
+            binding.rvRiwayat.visibility = View.GONE
+            binding.tvEmptyState.visibility = View.VISIBLE
 
             if (keyword.isNotEmpty()) {
-                tvEmptyState.text = "Riwayat tidak ditemukan"
+                binding.tvEmptyState.text = "Riwayat tidak ditemukan"
             } else {
-                tvEmptyState.text = "Belum ada Riwayat"
+                binding.tvEmptyState.text = "Belum ada Riwayat"
             }
         } else {
-            rvHistory.visibility = View.VISIBLE
-            tvEmptyState.visibility = View.GONE
+            binding.rvRiwayat.visibility = View.VISIBLE
+            binding.tvEmptyState.visibility = View.GONE
         }
     }
 
     private fun fetchHistories() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
-                // Ambil semua data
                 val response = ApiClient.instance.getHistories()
 
                 if (response.isSuccessful && response.body() != null) {
                     val rawList = response.body()!!
 
-                    // Urutkan Tahun Terbaru di Atas (Descending)
                     allHistoryList = rawList.sortedByDescending { it.tahun }
 
-                    // Tampilkan data (sesuai status pencarian saat ini)
-                    val currentKeyword = etSearch.text.toString().trim()
+                    val currentKeyword = binding.etSearch.text.toString().trim()
                     filterData(currentKeyword)
 
                 } else {
@@ -153,7 +146,7 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
             } catch (e: Exception) {
                 Log.e("HISTORY", "Error: ${e.message}")
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }

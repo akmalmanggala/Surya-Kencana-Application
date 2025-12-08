@@ -2,59 +2,43 @@ package com.example.suryakencanaapp
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
+import com.example.suryakencanaapp.databinding.ActivityAddEditTestimoniBinding
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class AddTestimoniActivity : AppCompatActivity() {
 
-    // Deklarasi Variabel UI
-    private lateinit var etClientName: TextInputEditText
-    private lateinit var etInstitution: TextInputEditText
-    private lateinit var etFeedback: TextInputEditText
-    private lateinit var etDate: TextInputEditText
-    private lateinit var btnSave: MaterialButton
-    private lateinit var btnCancel: MaterialButton
-    private lateinit var tvPageTitle: TextView
-
+    private lateinit var binding: ActivityAddEditTestimoniBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_edit_testimoni) // Pastikan nama XML sesuai
 
-        // 1. Inisialisasi View
-        etClientName = findViewById(R.id.etClientName)
-        etInstitution = findViewById(R.id.etInstitution)
-        etFeedback = findViewById(R.id.etFeedback)
-        etDate = findViewById(R.id.etDate)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnSave = findViewById(R.id.btnSave)           // Sambungkan tombol simpan
-        tvPageTitle = findViewById(R.id.tvPageTitle)
-        tvPageTitle.text = "Tambah Testimoni Baru"
-        btnSave.text = "Tambah Testimoni" // Sesuaikan teks tombol saat tambah Perubahan"
+        binding = ActivityAddEditTestimoniBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.tvPageTitle.text = "Tambah Testimoni Baru"
+        binding.btnSave.text = "Tambah Testimoni"
 
         // 2. Setup Date Picker (Kalender)
         setupDatePicker()
 
         // 3. Tombol Simpan
-        btnSave.setOnClickListener {
+        binding.btnSave.setOnClickListener {
             saveData()
         }
 
         // 4. Tombol Batal
-        btnCancel.setOnClickListener {
+        binding.btnCancel.setOnClickListener {
             finish() // Kembali ke halaman sebelumnya
         }
     }
 
     private fun setupDatePicker() {
-        etDate.setOnClickListener {
+        binding.etDate.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
@@ -69,7 +53,7 @@ class AddTestimoniActivity : AppCompatActivity() {
                     val formattedDay = String.format("%02d", selectedDay)
 
                     val dateString = "$selectedYear-$formattedMonth-$formattedDay"
-                    etDate.setText(dateString)
+                    binding.etDate.setText(dateString)
                 },
                 year, month, day
             )
@@ -79,10 +63,10 @@ class AddTestimoniActivity : AppCompatActivity() {
 
     private fun saveData() {
         // 1. Ambil data dari input
-        val name = etClientName.text.toString().trim()
-        val institution = etInstitution.text.toString().trim()
-        val feedback = etFeedback.text.toString().trim()
-        val date = etDate.text.toString().trim()
+        val name = binding.etClientName.text.toString().trim()
+        val institution = binding.etInstitution.text.toString().trim()
+        val feedback = binding.etFeedback.text.toString().trim()
+        val date = binding.etDate.text.toString().trim()
 
         // 2. Validasi Input
         if (name.isEmpty() || institution.isEmpty() || feedback.isEmpty() || date == "dd/mm/yyyy") {
@@ -108,8 +92,8 @@ class AddTestimoniActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Ubah teks tombol jadi "Loading..."
-                btnSave.isEnabled = false
-                btnSave.text = "Uploading..."
+                binding.btnSave.isEnabled = false
+                binding.btnSave.text = "Uploading..."
 
                 // PERHATIKAN: Parameter pertama sekarang adalah 'authHeader'
                 val response = ApiClient.instance.addTestimoni(
@@ -126,13 +110,13 @@ class AddTestimoniActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(applicationContext, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                     // Kembalikan tombol
-                    btnSave.isEnabled = true
-                    btnSave.text = "Tambah Testimoni"
+                    binding.btnSave.isEnabled = true
+                    binding.btnSave.text = "Tambah Testimoni"
                 }
             } catch (e: Exception) {
                 Toast.makeText(applicationContext, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                btnSave.isEnabled = true
-                btnSave.text = "Tambah Testimoni"
+                binding.btnSave.isEnabled = true
+                binding.btnSave.text = "Tambah Testimoni"
             }
         }
     }

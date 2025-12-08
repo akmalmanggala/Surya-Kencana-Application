@@ -7,73 +7,72 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.TextView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.TestimoniAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.FragmentTestimoniBinding
 import com.example.suryakencanaapp.model.Testimoni
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
-class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
+class TestimoniFragment : Fragment() {
 
-    private lateinit var rvTestimoni: RecyclerView
+    private var _binding: FragmentTestimoniBinding? = null
+    private val binding get() = _binding!!
     private lateinit var testimoniAdapter: TestimoniAdapter
-    private lateinit var etSearch: EditText
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var tvEmptyState: TextView
-
-    // 1. Variabel untuk menyimpan semua data (Master Data)
     private var allTestimoniList: List<Testimoni> = listOf()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentTestimoniBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        tvEmptyState = view.findViewById(R.id.tvEmptyState)
-        rvTestimoni = view.findViewById(R.id.rvTestimoni)
-        etSearch = view.findViewById(R.id.etSearch)
-
-        rvTestimoni.layoutManager = LinearLayoutManager(context)
+        binding.rvTestimoni.layoutManager = LinearLayoutManager(context)
 
         testimoniAdapter = TestimoniAdapter(listOf()) { testimoniToDelete ->
             showDeleteConfirmation(testimoniToDelete)
         }
-        rvTestimoni.adapter = testimoniAdapter
+        binding.rvTestimoni.adapter = testimoniAdapter
 
-        // Listener Refresh
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchTestimonies()
         }
 
-        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddTestimoni)
-        btnAdd.setOnClickListener {
+        binding.btnAddTestimoni.setOnClickListener {
             startActivity(Intent(requireContext(), AddTestimoniActivity::class.java))
         }
 
         setupSearchListener()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     override fun onResume() {
         super.onResume()
-        // Ambil data terbaru setiap halaman dibuka
         fetchTestimonies()
     }
 
     private fun setupSearchListener() {
-        etSearch.addTextChangedListener(object : TextWatcher {
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                // 2. Filter Langsung (Tanpa Delay)
                 val keyword = s.toString().trim()
                 filterData(keyword)
             }
@@ -100,36 +99,33 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
         testimoniAdapter.updateData(list)
 
         if (list.isEmpty()) {
-            rvTestimoni.visibility = View.GONE
-            tvEmptyState.visibility = View.VISIBLE
+            binding.rvTestimoni.visibility = View.GONE
+            binding.tvEmptyState.visibility = View.VISIBLE
 
             if (keyword.isNotEmpty()) {
-                tvEmptyState.text = "Testimoni tidak ditemukan"
+                binding.tvEmptyState.text = "Testimoni tidak ditemukan"
             } else {
-                tvEmptyState.text = "Belum ada Testimoni"
+                binding.tvEmptyState.text = "Belum ada Testimoni"
             }
         } else {
-            rvTestimoni.visibility = View.VISIBLE
-            tvEmptyState.visibility = View.GONE
+            binding.rvTestimoni.visibility = View.VISIBLE
+            binding.tvEmptyState.visibility = View.GONE
         }
     }
 
     private fun fetchTestimonies() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
 
         lifecycleScope.launch {
             try {
-                // 5. Ambil SEMUA data dari server (param null)
                 val response = ApiClient.instance.getTestimonies(null)
 
                 if (response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
 
-                    // Simpan ke Master List
                     allTestimoniList = listData.sortedByDescending { it.id }
 
-                    // Tampilkan data sesuai pencarian saat ini
-                    val currentKeyword = etSearch.text.toString().trim()
+                    val currentKeyword = binding.etSearch.text.toString().trim()
                     filterData(currentKeyword)
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -137,7 +133,7 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
             } catch (e: Exception) {
                 Log.e("TESTIMONI_API", "Error: ${e.message}")
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }

@@ -3,12 +3,9 @@ package com.example.suryakencanaapp.adapter
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import androidx.recyclerview.widget.RecyclerView
-import com.example.suryakencanaapp.R
-import com.google.android.material.textfield.TextInputEditText
+import com.example.suryakencanaapp.databinding.ItemMisiBinding
 
 class MisiAdapter(
     private var misiList: MutableList<String>
@@ -17,28 +14,25 @@ class MisiAdapter(
     // Variabel untuk mencegah double click
     private var lastClickTime: Long = 0
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val etMisiItem: TextInputEditText = itemView.findViewById(R.id.etMisiItem)
-        val btnDelete: ImageButton = itemView.findViewById(R.id.btnDeleteMisi)
-
+    class ViewHolder(val binding: ItemMisiBinding) : RecyclerView.ViewHolder(binding.root) {
         // Simpan referensi TextWatcher agar bisa dihapus nanti
         var currentWatcher: TextWatcher? = null
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_misi, parent, false)
-        return ViewHolder(view)
+        val binding = ItemMisiBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         // 1. HAPUS TextWatcher lama sebelum mengisi teks baru (PENTING!)
         // Jika tidak dihapus, saat scroll listener akan menumpuk dan bikin error/lemot.
         holder.currentWatcher?.let {
-            holder.etMisiItem.removeTextChangedListener(it)
+            holder.binding.etMisiItem.removeTextChangedListener(it)
         }
 
         // 2. Isi teks dari list
-        holder.etMisiItem.setText(misiList[position])
+        holder.binding.etMisiItem.setText(misiList[position])
 
         // 3. Buat TextWatcher baru
         val newWatcher = object : TextWatcher {
@@ -53,11 +47,11 @@ class MisiAdapter(
         }
 
         // Pasang listener baru dan simpan referensinya
-        holder.etMisiItem.addTextChangedListener(newWatcher)
+        holder.binding.etMisiItem.addTextChangedListener(newWatcher)
         holder.currentWatcher = newWatcher
 
         // 4. Tombol Hapus (DENGAN ANTI-DOUBLE CLICK)
-        holder.btnDelete.setOnClickListener {
+        holder.binding.btnDeleteMisi.setOnClickListener {
             val currentTime = System.currentTimeMillis()
 
             // Cek 1: Jeda waktu (500ms) agar tidak bisa diklik 2x cepat

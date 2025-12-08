@@ -3,13 +3,10 @@ package com.example.suryakencanaapp.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.suryakencanaapp.R
+import com.example.suryakencanaapp.databinding.ItemHistoryBinding
 import com.example.suryakencanaapp.model.History
 
 class HistoryAdapter(
@@ -18,46 +15,39 @@ class HistoryAdapter(
     private val onEditClick: (History) -> Unit // Tambahkan callback edit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvYear: TextView = view.findViewById(R.id.tvYearBubble)
-        val tvTitle: TextView = view.findViewById(R.id.tvHistoryTitle)
-        val tvDesc: TextView = view.findViewById(R.id.tvHistoryDesc)
-        val imgHistory: ImageView = view.findViewById(R.id.imgHistory)
-        val btnEdit: ImageButton = view.findViewById(R.id.btnEdit)
-        val btnDelete: ImageButton = view.findViewById(R.id.btnDelete)
-    }
+    class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_history, parent, false)
-        return ViewHolder(view)
+        val binding = ItemHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = historyList[position]
 
         // --- SESUAIKAN DENGAN MODEL BARU ---
-        holder.tvYear.text = data.tahun.toString()
-        holder.tvTitle.text = data.judul
-        holder.tvDesc.text = data.deskripsi
+        holder.binding.tvYearBubble.text = data.tahun.toString()
+        holder.binding.tvHistoryTitle.text = data.judul
+        holder.binding.tvHistoryDesc.text = data.deskripsi
 
         // Load Gambar
         if (!data.imageUrl.isNullOrEmpty()) {
-            holder.imgHistory.visibility = View.VISIBLE
+            holder.binding.imgHistory.visibility = View.VISIBLE
             Glide.with(holder.itemView.context)
                 .load(data.imageUrl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL) // <--- PENTING: Simpan semua versi
                 .centerCrop()
-                .into(holder.imgHistory)
+                .into(holder.binding.imgHistory)
         } else {
             // Placeholder default
-            holder.imgHistory.visibility = View.GONE
+            holder.binding.imgHistory.visibility = View.GONE
         }
 
         // Klik Hapus
-        holder.btnDelete.setOnClickListener { onDeleteClick(data) }
+        holder.binding.btnDelete.setOnClickListener { onDeleteClick(data) }
 
         // Klik Edit
-        holder.btnEdit.setOnClickListener { onEditClick(data) }
+        holder.binding.btnEdit.setOnClickListener { onEditClick(data) }
     }
 
     override fun getItemCount() = historyList.size

@@ -2,62 +2,45 @@ package com.example.suryakencanaapp
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
+import com.example.suryakencanaapp.databinding.ActivityAddEditTestimoniBinding
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class EditTestimoniActivity : AppCompatActivity() {
 
-    private lateinit var etClientName: TextInputEditText
-    private lateinit var etInstitution: TextInputEditText
-    private lateinit var etFeedback: TextInputEditText
-    private lateinit var etDate: TextInputEditText
-    private lateinit var btnSave: MaterialButton
-    private lateinit var btnCancel: MaterialButton
-    private lateinit var tvPageTitle: TextView
-
-
-    private var testimonialId: Int = 0 // Untuk menyimpan ID yang mau diedit
+    private lateinit var binding: ActivityAddEditTestimoniBinding
+    private var testimonialId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_edit_testimoni) // Pastikan XML Edit sudah dibuat
 
-        // 1. Inisialisasi View
-        etClientName = findViewById(R.id.etClientName)
-        etInstitution = findViewById(R.id.etInstitution)
-        etFeedback = findViewById(R.id.etFeedback)
-        etDate = findViewById(R.id.etDate)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnSave = findViewById(R.id.btnSave)
-        tvPageTitle = findViewById(R.id.tvPageTitle)
-        tvPageTitle.text = "Edit Testimoni"
-        btnSave.text = "Simpan Perubahan"
+        binding = ActivityAddEditTestimoniBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.tvPageTitle.text = "Edit Testimoni"
+        binding.btnSave.text = "Simpan Perubahan"
 
         // 2. AMBIL DATA DARI ADAPTER (Intent)
         testimonialId = intent.getIntExtra("ID", 0)
-        etClientName.setText(intent.getStringExtra("NAME"))
-        etInstitution.setText(intent.getStringExtra("INSTITUTION"))
-        etFeedback.setText(intent.getStringExtra("FEEDBACK"))
-        etDate.setText(intent.getStringExtra("DATE"))
+        binding.etClientName.setText(intent.getStringExtra("NAME"))
+        binding.etInstitution.setText(intent.getStringExtra("INSTITUTION"))
+        binding.etFeedback.setText(intent.getStringExtra("FEEDBACK"))
+        binding.etDate.setText(intent.getStringExtra("DATE"))
 
         // 3. Setup Date Picker
         setupDatePicker()
 
         // 4. Action Tombol
-        btnSave.setOnClickListener { updateData() }
-        btnCancel.setOnClickListener { finish() }
+        binding.btnSave.setOnClickListener { updateData() }
+        binding.btnCancel.setOnClickListener { finish() }
     }
 
     private fun setupDatePicker() {
-        // ... (Kode DatePicker SAMA PERSIS dengan AddTestimoni) ...
-        etDate.setOnClickListener {
+        binding.etDate.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
@@ -66,16 +49,16 @@ class EditTestimoniActivity : AppCompatActivity() {
             DatePickerDialog(this, { _, y, m, d ->
                 val formattedMonth = String.format("%02d", m + 1)
                 val formattedDay = String.format("%02d", d)
-                etDate.setText("$y-$formattedMonth-$formattedDay")
+                binding.etDate.setText("$y-$formattedMonth-$formattedDay")
             }, year, month, day).show()
         }
     }
 
     private fun updateData() {
-        val name = etClientName.text.toString().trim()
-        val institution = etInstitution.text.toString().trim()
-        val feedback = etFeedback.text.toString().trim()
-        val date = etDate.text.toString().trim()
+        val name = binding.etClientName.text.toString().trim()
+        val institution = binding.etInstitution.text.toString().trim()
+        val feedback = binding.etFeedback.text.toString().trim()
+        val date = binding.etDate.text.toString().trim()
 
         if (name.isEmpty() || institution.isEmpty()) {
             Toast.makeText(this, "Data tidak boleh kosong", Toast.LENGTH_SHORT).show()
@@ -93,8 +76,8 @@ class EditTestimoniActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                btnSave.isEnabled = false
-                btnSave.text = "Updating..."
+                binding.btnSave.isEnabled = false
+                binding.btnSave.text = "Updating..."
 
                 // PANGGIL API UPDATE
                 val response = ApiClient.instance.updateTestimoni(
@@ -111,13 +94,13 @@ class EditTestimoniActivity : AppCompatActivity() {
                     finish() // Tutup halaman edit
                 } else {
                     Toast.makeText(applicationContext, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    btnSave.isEnabled = true
-                    btnSave.text = "Simpan Perubahan"
+                    binding.btnSave.isEnabled = true
+                    binding.btnSave.text = "Simpan Perubahan"
                 }
             } catch (e: Exception) {
                 Toast.makeText(applicationContext, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                btnSave.isEnabled = true
-                btnSave.text = "Simpan Perubahan"
+                binding.btnSave.isEnabled = true
+                binding.btnSave.text = "Simpan Perubahan"
             }
         }
     }

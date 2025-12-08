@@ -4,23 +4,19 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.FragmentPengaturanBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -29,140 +25,80 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
+class PengaturanFragment : Fragment() {
 
-    // UI Variables
-    private lateinit var etCompanyName: TextInputEditText
-    private lateinit var etHeroTitle: TextInputEditText
-    private lateinit var etHeroSubtitle: TextInputEditText
-
-    private lateinit var etVisionLabel: TextInputEditText
-    private lateinit var etVisionTitle: TextInputEditText
-
-    private lateinit var etProductLabel: TextInputEditText
-    private lateinit var etProductTitle: TextInputEditText
-
-    private lateinit var etClientLabel: TextInputEditText
-    private lateinit var etClientTitle: TextInputEditText
-
-    private lateinit var etHistoryLabel: TextInputEditText
-    private lateinit var etHistoryTitle: TextInputEditText
-
-    private lateinit var etTestiLabel: TextInputEditText
-    private lateinit var etTestiTitle: TextInputEditText
-
-    private lateinit var etContactLabel: TextInputEditText
-    private lateinit var etContactTitle: TextInputEditText
-
-    private lateinit var btnUploadLogo: LinearLayout
-    private lateinit var imgLogoPreview: ImageView
-    private lateinit var imgUploadIcon: ImageView
-    private lateinit var tvUploadInfo: TextView
-    private lateinit var btnSave: MaterialButton
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-
-    // Data File
+    private var _binding: FragmentPengaturanBinding? = null
+    private val binding get() = _binding!!
     private var selectedLogoFile: File? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentPengaturanBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews(view)
 
-        btnUploadLogo.setOnClickListener { openGallery() }
-        btnSave.setOnClickListener { saveSettings() }
+        binding.btnUploadLogo.setOnClickListener { openGallery() }
+        binding.btnSaveSettings.setOnClickListener { saveSettings() }
 
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchSettings()
         }
 
-        // Fetch Data Awal
         fetchSettings()
     }
 
-    private fun initViews(view: View) {
-        etCompanyName = view.findViewById(R.id.etCompanyName)
-        etHeroTitle = view.findViewById(R.id.etHeroTitle)
-        etHeroSubtitle = view.findViewById(R.id.etHeroSubtitle)
-
-        etVisionLabel = view.findViewById(R.id.etVisionLabel)
-        etVisionTitle = view.findViewById(R.id.etVisionTitle)
-
-        etProductLabel = view.findViewById(R.id.etProductLabel)
-        etProductTitle = view.findViewById(R.id.etProductTitle)
-
-        etClientLabel = view.findViewById(R.id.etClientLabel)
-        etClientTitle = view.findViewById(R.id.etClientTitle)
-
-        etHistoryLabel = view.findViewById(R.id.etHistoryLabel)
-        etHistoryTitle = view.findViewById(R.id.etHistoryTitle)
-
-        etTestiLabel = view.findViewById(R.id.etTestiLabel)
-        etTestiTitle = view.findViewById(R.id.etTestiTitle)
-
-        etContactLabel = view.findViewById(R.id.etContactLabel)
-        etContactTitle = view.findViewById(R.id.etContactTitle)
-
-        btnUploadLogo = view.findViewById(R.id.btnUploadLogo)
-        imgLogoPreview = view.findViewById(R.id.imgLogoPreview)
-        imgUploadIcon = view.findViewById(R.id.imgUploadIcon)
-        tvUploadInfo = view.findViewById(R.id.tvUploadInfo)
-        btnSave = view.findViewById(R.id.btnSaveSettings)
-
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Hapus pemanggilan fetchSettings di sini jika menyebabkan data "lompat" saat pilih gambar
-        // Cukup panggil saat onViewCreated atau SwipeRefresh
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     // --- GET DATA ---
     private fun fetchSettings() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getSiteSettings()
                 if (response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
-                    // Isi Text Fields
-                    etCompanyName.setText(data.companyName)
-                    etHeroTitle.setText(data.heroTitle)
-                    etHeroSubtitle.setText(data.heroSubtitle)
-                    etVisionLabel.setText(data.visionLabel)
-                    etVisionTitle.setText(data.visionTitle)
-                    etProductLabel.setText(data.productLabel)
-                    etProductTitle.setText(data.productTitle)
-                    etClientLabel.setText(data.clientLabel)
-                    etClientTitle.setText(data.clientTitle)
-                    etHistoryLabel.setText(data.historyLabel)
-                    etHistoryTitle.setText(data.historyTitle)
-                    etTestiLabel.setText(data.testiLabel)
-                    etTestiTitle.setText(data.testiTitle)
-                    etContactLabel.setText(data.contactLabel)
-                    etContactTitle.setText(data.contactTitle)
+                    binding.etCompanyName.setText(data.companyName)
+                    binding.etHeroTitle.setText(data.heroTitle)
+                    binding.etHeroSubtitle.setText(data.heroSubtitle)
+                    binding.etVisionLabel.setText(data.visionLabel)
+                    binding.etVisionTitle.setText(data.visionTitle)
+                    binding.etProductLabel.setText(data.productLabel)
+                    binding.etProductTitle.setText(data.productTitle)
+                    binding.etClientLabel.setText(data.clientLabel)
+                    binding.etClientTitle.setText(data.clientTitle)
+                    binding.etHistoryLabel.setText(data.historyLabel)
+                    binding.etHistoryTitle.setText(data.historyTitle)
+                    binding.etTestiLabel.setText(data.testiLabel)
+                    binding.etTestiTitle.setText(data.testiTitle)
+                    binding.etContactLabel.setText(data.contactLabel)
+                    binding.etContactTitle.setText(data.contactTitle)
 
-                    // Isi Logo
                     if (!data.companyLogoUrl.isNullOrEmpty()) {
                         showPreview(true)
 
-                        // --- PERBAIKAN GLIDE CACHE ---
-                        // Menggunakan signature waktu sekarang agar Glide TIDAK mengambil cache lama
-                        // jika URL-nya sama.
                         Glide.with(this@PengaturanFragment)
                             .load(data.companyLogoUrl)
-                            .signature(ObjectKey(System.currentTimeMillis().toString())) // <--- PENTING
+                            .signature(ObjectKey(System.currentTimeMillis().toString()))
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .into(imgLogoPreview)
+                            .into(binding.imgLogoPreview)
 
-                        tvUploadInfo.text = "Logo Saat Ini (Ketuk untuk ganti)"
+                        binding.tvUploadInfo.text = "Logo Saat Ini (Ketuk untuk ganti)"
                     }
                 }
             } catch (e: Exception) {
                 Log.e("SETTINGS_API", "Error: ${e.message}")
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -174,25 +110,24 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
 
         lifecycleScope.launch {
             try {
-                btnSave.isEnabled = false
-                btnSave.text = "Menyimpan..."
+                binding.btnSaveSettings.isEnabled = false
+                binding.btnSaveSettings.text = "Menyimpan..."
 
-                // 1. Siapkan semua text
-                val reqCompany = createPart(etCompanyName)
-                val reqHeroT = createPart(etHeroTitle)
-                val reqHeroS = createPart(etHeroSubtitle)
-                val reqVisL = createPart(etVisionLabel)
-                val reqVisT = createPart(etVisionTitle)
-                val reqProdL = createPart(etProductLabel)
-                val reqProdT = createPart(etProductTitle)
-                val reqCliL = createPart(etClientLabel)
-                val reqCliT = createPart(etClientTitle)
-                val reqHisL = createPart(etHistoryLabel)
-                val reqHisT = createPart(etHistoryTitle)
-                val reqTesL = createPart(etTestiLabel)
-                val reqTesT = createPart(etTestiTitle)
-                val reqConL = createPart(etContactLabel)
-                val reqConT = createPart(etContactTitle)
+                val reqCompany = createPart(binding.etCompanyName)
+                val reqHeroT = createPart(binding.etHeroTitle)
+                val reqHeroS = createPart(binding.etHeroSubtitle)
+                val reqVisL = createPart(binding.etVisionLabel)
+                val reqVisT = createPart(binding.etVisionTitle)
+                val reqProdL = createPart(binding.etProductLabel)
+                val reqProdT = createPart(binding.etProductTitle)
+                val reqCliL = createPart(binding.etClientLabel)
+                val reqCliT = createPart(binding.etClientTitle)
+                val reqHisL = createPart(binding.etHistoryLabel)
+                val reqHisT = createPart(binding.etHistoryTitle)
+                val reqTesL = createPart(binding.etTestiLabel)
+                val reqTesT = createPart(binding.etTestiTitle)
+                val reqConL = createPart(binding.etContactLabel)
+                val reqConT = createPart(binding.etContactTitle)
 
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
@@ -243,8 +178,8 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 e.printStackTrace()
             } finally {
-                btnSave.isEnabled = true
-                btnSave.text = "Simpan Pengaturan"
+                binding.btnSaveSettings.isEnabled = true
+                binding.btnSaveSettings.text = "Simpan Pengaturan"
             }
         }
     }
@@ -253,10 +188,9 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             showPreview(true)
-            imgLogoPreview.setImageURI(uri)
-            tvUploadInfo.text = "Logo Baru Terpilih (Belum Disimpan)"
+            binding.imgLogoPreview.setImageURI(uri)
+            binding.tvUploadInfo.text = "Logo Baru Terpilih (Belum Disimpan)"
 
-            // Gunakan FileUtils yang sudah dikompresi
             selectedLogoFile = FileUtils.getFileFromUri(requireContext(), uri)
         }
     }
@@ -267,17 +201,16 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
 
     private fun showPreview(show: Boolean) {
         if (show) {
-            imgUploadIcon.visibility = View.GONE
-            imgLogoPreview.visibility = View.VISIBLE
+            binding.imgUploadIcon.visibility = View.GONE
+            binding.imgLogoPreview.visibility = View.VISIBLE
         } else {
-            imgUploadIcon.visibility = View.VISIBLE
-            imgLogoPreview.visibility = View.GONE
+            binding.imgUploadIcon.visibility = View.VISIBLE
+            binding.imgLogoPreview.visibility = View.GONE
         }
     }
 
-    private fun createPart(editText: EditText): RequestBody {
+    private fun createPart(editText: android.widget.EditText): RequestBody {
         val text = editText.text.toString().trim()
-        // Kirim string kosong ("") jika field kosong, jangan null
         return text.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 }

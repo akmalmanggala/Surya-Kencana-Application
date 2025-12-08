@@ -5,22 +5,18 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.HeroAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.databinding.FragmentHeroBinding
 import com.example.suryakencanaapp.utils.FileUtils
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -29,62 +25,50 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class HeroFragment : Fragment(R.layout.fragment_hero) {
+class HeroFragment : Fragment() {
 
-    // ... (Variabel UI tetap sama) ...
-    private lateinit var etLocation: TextInputEditText
-    private lateinit var etHeroTitle: TextInputEditText
-    private lateinit var etStatMachine: TextInputEditText
-    private lateinit var etStatCustomer: TextInputEditText
-    private lateinit var etStatClient: TextInputEditText
-    private lateinit var etStatExp: TextInputEditText
-    private lateinit var etStatTrust: TextInputEditText
-    private lateinit var btnSave: MaterialButton
-    private lateinit var btnAddImage: LinearLayout
-    private lateinit var rvHeroImages: RecyclerView
-    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private var _binding: FragmentHeroBinding? = null
+    private val binding get() = _binding!!
     private lateinit var heroImageAdapter: HeroAdapter
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHeroBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews(view)
 
-        rvHeroImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvHeroImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         heroImageAdapter = HeroAdapter(listOf(), listOf()) { pathToDelete ->
             showDeleteConfirmation(pathToDelete)
         }
-        rvHeroImages.adapter = heroImageAdapter
+        binding.rvHeroImages.adapter = heroImageAdapter
 
-        btnAddImage.setOnClickListener { openGallery() }
-        btnSave.setOnClickListener { saveChanges() }
+        binding.btnAddImage.setOnClickListener { openGallery() }
+        binding.btnSaveHero.setOnClickListener { saveChanges() }
 
-        swipeRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             fetchHeroData()
         }
     }
 
-    // ... (initViews, onResume, fetchHeroData TETAP SAMA) ...
-    private fun initViews(view: View) {
-        etLocation = view.findViewById(R.id.etLocation)
-        etHeroTitle = view.findViewById(R.id.etHeroTitle)
-        etStatMachine = view.findViewById(R.id.etStatMachine)
-        etStatCustomer = view.findViewById(R.id.etStatCustomer)
-        etStatClient = view.findViewById(R.id.etStatClient)
-        etStatExp = view.findViewById(R.id.etStatExp)
-        etStatTrust = view.findViewById(R.id.etStatTrust)
-        btnSave = view.findViewById(R.id.btnSaveHero)
-        btnAddImage = view.findViewById(R.id.btnAddImage)
-        rvHeroImages = view.findViewById(R.id.rvHeroImages)
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onResume() {
         super.onResume()
-        swipeRefresh.post { fetchHeroData() }
+        binding.swipeRefresh.post { fetchHeroData() }
     }
 
     private fun fetchHeroData() {
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHero()
@@ -92,13 +76,13 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                     val list = response.body()!!
                     if (list.isNotEmpty()) {
                         val data = list[0]
-                        etLocation.setText(data.location)
-                        etHeroTitle.setText(data.title)
-                        etStatMachine.setText(data.machines?.toString() ?: "0")
-                        etStatClient.setText(data.clients?.toString() ?: "0")
-                        etStatCustomer.setText(data.customers?.toString() ?: "0")
-                        etStatExp.setText(data.experienceYears?.toString() ?: "0")
-                        etStatTrust.setText(data.trustYears?.toString() ?: "0")
+                        binding.etLocation.setText(data.location)
+                        binding.etHeroTitle.setText(data.title)
+                        binding.etStatMachine.setText(data.machines?.toString() ?: "0")
+                        binding.etStatClient.setText(data.clients?.toString() ?: "0")
+                        binding.etStatCustomer.setText(data.customers?.toString() ?: "0")
+                        binding.etStatExp.setText(data.experienceYears?.toString() ?: "0")
+                        binding.etStatTrust.setText(data.trustYears?.toString() ?: "0")
 
                         val urls = data.backgroundUrls ?: listOf()
                         val paths = data.backgroundPaths ?: listOf()
@@ -108,7 +92,7 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
             } catch (e: Exception) {
                 Log.e("HERO_API", "Error: ${e.message}")
             } finally {
-                swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -166,17 +150,16 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
 
         lifecycleScope.launch {
             try {
-                btnSave.isEnabled = false
-                btnSave.text = "Updating..."
+                binding.btnSaveHero.isEnabled = false
+                binding.btnSaveHero.text = "Updating..."
 
-                // 1. Siapkan Text Body
-                val location = createPart(etLocation.text.toString())
-                val title = createPart(etHeroTitle.text.toString())
-                val machine = createPart(etStatMachine.text.toString())
-                val client = createPart(etStatClient.text.toString())
-                val customer = createPart(etStatCustomer.text.toString())
-                val exp = createPart(etStatExp.text.toString())
-                val trust = createPart(etStatTrust.text.toString())
+                val location = createPart(binding.etLocation.text.toString())
+                val title = createPart(binding.etHeroTitle.text.toString())
+                val machine = createPart(binding.etStatMachine.text.toString())
+                val client = createPart(binding.etStatClient.text.toString())
+                val customer = createPart(binding.etStatCustomer.text.toString())
+                val exp = createPart(binding.etStatExp.text.toString())
+                val trust = createPart(binding.etStatTrust.text.toString())
 
                 // 2. Siapkan Gambar Baru
                 val newImagesList = if (newImageFile != null) {
@@ -236,8 +219,8 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                 Toast.makeText(context, exMsg, Toast.LENGTH_SHORT).show()
                 Log.e("HERO_UPDATE", "Exception: ${e.message}")
             } finally {
-                btnSave.isEnabled = true
-                btnSave.text = "Simpan Perubahan"
+                binding.btnSaveHero.isEnabled = true
+                binding.btnSaveHero.text = "Simpan Perubahan"
             }
         }
     }
