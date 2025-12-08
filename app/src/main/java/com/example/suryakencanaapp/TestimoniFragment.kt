@@ -9,6 +9,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,8 +20,6 @@ import com.example.suryakencanaapp.adapter.TestimoniAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.model.Testimoni
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
@@ -29,55 +28,43 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
     private lateinit var testimoniAdapter: TestimoniAdapter
     private lateinit var etSearch: EditText
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    private var searchJob: Job? = null
+    private lateinit var tvEmptyState: TextView
+
+    // 1. Variabel untuk menyimpan semua data (Master Data)
+    private var allTestimoniList: List<Testimoni> = listOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Init SwipeRefresh
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
-
-        // 2. Setup RecyclerView
+        tvEmptyState = view.findViewById(R.id.tvEmptyState)
         rvTestimoni = view.findViewById(R.id.rvTestimoni)
+        etSearch = view.findViewById(R.id.etSearch)
+
         rvTestimoni.layoutManager = LinearLayoutManager(context)
 
-        // Init Adapter (Pastikan TestimoniAdapter sudah Anda buat dengan callback delete/edit)
         testimoniAdapter = TestimoniAdapter(listOf()) { testimoniToDelete ->
             showDeleteConfirmation(testimoniToDelete)
         }
         rvTestimoni.adapter = testimoniAdapter
 
-        // 3. Listener Manual Refresh
+        // Listener Refresh
         swipeRefresh.setOnRefreshListener {
-            val keyword = etSearch.text.toString().trim()
-            fetchTestimonies(if (keyword.isNotEmpty()) keyword else null)
+            fetchTestimonies()
         }
 
-        // 4. Setup Tombol Tambah
         val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddTestimoni)
         btnAdd.setOnClickListener {
-            // Arahkan ke Activity Tambah Testimoni (Ganti jika namanya beda)
             startActivity(Intent(requireContext(), AddTestimoniActivity::class.java))
         }
 
-        // 5. Setup Pencarian
-        etSearch = view.findViewById(R.id.etSearch)
         setupSearchListener()
     }
 
-    // 6. Load Otomatis saat masuk halaman
     override fun onResume() {
         super.onResume()
-
-        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
-        if (::testimoniAdapter.isInitialized && ::etSearch.isInitialized) {
-
-            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
-            val keyword = etSearch.text.toString().trim()
-
-            // 3. Panggil fetch dengan kata kunci tersebut
-            fetchTestimonies(if (keyword.isNotEmpty()) keyword else null)
-        }
+        // Ambil data terbaru setiap halaman dibuka
+        fetchTestimonies()
     }
 
     private fun setupSearchListener() {
@@ -86,51 +73,81 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                searchJob = lifecycleScope.launch {
-                    delay(800)
-                    val keyword = s.toString().trim()
-                    if (keyword.isNotEmpty()) {
-                        fetchTestimonies(keyword)
-                    } else {
-                        fetchTestimonies(null)
-                    }
-                }
+                // 2. Filter Langsung (Tanpa Delay)
+                val keyword = s.toString().trim()
+                filterData(keyword)
             }
         })
     }
 
-    private fun fetchTestimonies(keyword: String? = null) {
-        // Tampilkan loading
+    // 3. Logika Filter Lokal (Nama, Instansi, atau Umpan Balik)
+    private fun filterData(keyword: String) {
+        val filteredList = if (keyword.isEmpty()) {
+            allTestimoniList
+        } else {
+            allTestimoniList.filter {
+                // Menggunakan ?. dan == true untuk menangani data null
+                (it.clientName?.contains(keyword, ignoreCase = true) == true) ||
+                        (it.institution?.contains(keyword, ignoreCase = true) == true) ||
+                        (it.feedback?.contains(keyword, ignoreCase = true) == true)
+            }
+        }
+        updateListUI(filteredList, keyword)
+    }
+
+    // 4. Update UI & Empty State
+    private fun updateListUI(list: List<Testimoni>, keyword: String) {
+        testimoniAdapter.updateData(list)
+
+        if (list.isEmpty()) {
+            rvTestimoni.visibility = View.GONE
+            tvEmptyState.visibility = View.VISIBLE
+
+            if (keyword.isNotEmpty()) {
+                tvEmptyState.text = "Testimoni tidak ditemukan"
+            } else {
+                tvEmptyState.text = "Belum ada Testimoni"
+            }
+        } else {
+            rvTestimoni.visibility = View.VISIBLE
+            tvEmptyState.visibility = View.GONE
+        }
+    }
+
+    private fun fetchTestimonies() {
         swipeRefresh.isRefreshing = true
 
         lifecycleScope.launch {
             try {
-                val response = ApiClient.instance.getTestimonies(keyword)
+                // 5. Ambil SEMUA data dari server (param null)
+                val response = ApiClient.instance.getTestimonies(null)
 
                 if (response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
-                    // Urutkan terbaru di atas
-                    val sortedList = listData.sortedByDescending { it.id }
-                    testimoniAdapter.updateData(sortedList)
+
+                    // Simpan ke Master List
+                    allTestimoniList = listData.sortedByDescending { it.id }
+
+                    // Tampilkan data sesuai pencarian saat ini
+                    val currentKeyword = etSearch.text.toString().trim()
+                    filterData(currentKeyword)
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("TESTIMONI_API", "Error: ${e.message}")
             } finally {
-                // Matikan loading
                 swipeRefresh.isRefreshing = false
             }
         }
     }
 
+    // ... (Fungsi delete tetap sama) ...
     private fun showDeleteConfirmation(data: Testimoni) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Testimoni")
             .setMessage("Hapus ulasan dari ${data.clientName}?")
             .setPositiveButton("Hapus") { _, _ ->
-                // SOLUSI: Cek dulu apakah ID-nya ada (tidak null)
                 data.id?.let { idPasti ->
                     deleteTestimoniApi(idPasti)
                 } ?: run {
@@ -153,7 +170,7 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Testimoni Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
-                    fetchTestimonies() // Refresh otomatis
+                    fetchTestimonies() // Refresh data
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }

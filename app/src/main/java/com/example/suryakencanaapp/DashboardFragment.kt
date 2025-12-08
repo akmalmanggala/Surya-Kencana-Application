@@ -44,6 +44,8 @@ class DashboardFragment : Fragment() {
     private lateinit var btnQuickSitus: MaterialCardView
     private lateinit var btnQuickAdmin: MaterialCardView
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var tvEmptyRecentProduct: TextView
+    private lateinit var tvEmptyRecentTestimoni: TextView
     private var cachedDashboardData: Dashboard? = null
 
 
@@ -106,6 +108,9 @@ class DashboardFragment : Fragment() {
         // Tombol Lihat Semua
         tvSeeAllProduct = view.findViewById(R.id.tvSeeAllProducts)
         tvSeeAllTestimoni = view.findViewById(R.id.tvSeeAllTestimonies)
+
+        tvEmptyRecentProduct = view.findViewById(R.id.tvEmptyRecentProduct)
+        tvEmptyRecentTestimoni = view.findViewById(R.id.tvEmptyRecentTestimoni)
 
         btnQuickProduct = view.findViewById(R.id.btnQuickProduct)
         btnQuickClient = view.findViewById(R.id.btnQuickClient)
@@ -224,7 +229,21 @@ class DashboardFragment : Fragment() {
 
         // List
         recentProductAdapter.updateData(data.recentProducts)
+        if (data.recentProducts.isEmpty()) {
+            rvRecentProducts.visibility = View.GONE
+            tvEmptyRecentProduct.visibility = View.VISIBLE
+        } else {
+            rvRecentProducts.visibility = View.VISIBLE
+            tvEmptyRecentProduct.visibility = View.GONE
+        }
         recentTestiAdapter.updateData(data.recentTestimonials)
+        if (data.recentTestimonials.isEmpty()) {
+            rvRecentTestimoni.visibility = View.GONE
+            tvEmptyRecentTestimoni.visibility = View.VISIBLE
+        } else {
+            rvRecentTestimoni.visibility = View.VISIBLE
+            tvEmptyRecentTestimoni.visibility = View.GONE
+        }
     }
 
     private fun safeNavigate(navId: Int) {

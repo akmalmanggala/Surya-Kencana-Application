@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navController: NavController
+    private lateinit var navView: NavigationView // Tambahkan ini sebagai variabel global kelas
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView = findViewById(R.id.nav_view) // Inisialisasi di sini
 
         // --- SETUP NAV CONTROLLER ---
         val navHostFragment = supportFragmentManager
@@ -57,17 +60,27 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        // --- CUSTOM NAVIGATION LISTENER (DENGAN DELAY) ---
+        // --- [BARU] PAKSA HIGHLIGHT MENU SAAT PINDAH HALAMAN ---
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            // 1. Cari item menu berdasarkan ID halaman yang sedang dibuka
+            val menuItem = findMenuItemInNav(navView.menu, destination.id)
+
+            // 2. Jika ketemu, aktifkan (Checked)
+            if (menuItem != null) {
+                menuItem.isChecked = true
+            }
+        }
+        // -------------------------------------------------------
+
+        // --- CUSTOM NAVIGATION LISTENER (YANG LAMA TETAP ADA) ---
         navView.setNavigationItemSelectedListener { item ->
             val id = item.itemId
 
-            // 1. Cek apakah halaman sudah sama? (Kalau sama, tutup aja tanpa reload)
             if (navController.currentDestination?.id == id) {
                 closeDrawerSmoothly()
                 return@setNavigationItemSelectedListener false
             }
 
-            // 2. Lakukan Navigasi
             when (id) {
                 R.id.nav_dashboard -> {
                     navController.popBackStack(R.id.nav_dashboard, false)
@@ -85,10 +98,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-
-            // 3. TUTUP DRAWER DENGAN JEDA (Agar lebih halus)
             closeDrawerSmoothly()
-
             true
         }
 
@@ -96,55 +106,58 @@ class MainActivity : AppCompatActivity() {
         val btnLogoutSidebar = findViewById<Button>(R.id.btnLogoutSidebar)
         btnLogoutSidebar.setOnClickListener {
             logout()
-            // Logout tidak perlu delay karena langsung pindah Activity
             drawerLayout.closeDrawer(GravityCompat.START)
         }
     }
 
-    // --- FUNGSI BARU: Tutup Drawer dengan Delay ---
+    // --- [BARU] FUNGSI PENCARI MENU (REKURSIF) ---
+    // Fungsi ini bisa mencari menu sampai ke dalam sub-menu terdalam
+    private fun findMenuItemInNav(menu: Menu, targetId: Int): MenuItem? {
+        for (i in 0 until menu.size()) {
+            val item = menu.getItem(i)
+
+            // Cek apakah item ini yang dicari?
+            if (item.itemId == targetId) {
+                return item
+            }
+
+            // Jika item ini punya sub-menu, cari lagi di dalamnya
+            if (item.hasSubMenu()) {
+                val result = findMenuItemInNav(item.subMenu!!, targetId)
+                if (result != null) return result
+            }
+        }
+        return null
+    }
+
     private fun closeDrawerSmoothly() {
-        // Beri jeda 300ms agar efek klik terlihat dulu
         Handler(Looper.getMainLooper()).postDelayed({
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
             }
-        }, 300) // <-- Ganti angka ini jika ingin lebih lambat (misal 500)
+        }, 300)
     }
 
     private fun setupHeaderAndRole(navView: NavigationView) {
-        // 1. Ambil Header View
         val headerView = navView.getHeaderView(0)
-
-        // 2. Inisialisasi TextViews
         val tvHeaderName = headerView.findViewById<TextView>(R.id.tvHeaderName)
-        // Tambahkan inisialisasi untuk Role TV yang baru
         val tvHeaderRole = headerView.findViewById<TextView>(R.id.tvHeaderRole)
 
-        // 3. Ambil data dari Shared Preferences
         val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        // Beri nilai default "" agar mudah dicek
         val userRoleRaw = sharedPref.getString("ROLE", "") ?: ""
         val username = sharedPref.getString("USERNAME", "Admin")
 
-        // 4. Setup Menu Admin (Kode lama Anda)
         val menu = navView.menu
         val adminMenu = menu.findItem(R.id.nav_admin_management)
-        // Cek role secara case-insensitive (aman untuk "superadmin" atau "SuperAdmin")
         adminMenu?.isVisible = userRoleRaw.equals("superadmin", ignoreCase = true)
 
-        // 5. Set Teks Nama
         tvHeaderName.text = "Halo, $username"
 
-        // 6. FORMAT & SET TEKS ROLE (BARU)
-        // Ubah role menjadi format yang lebih rapi (Huruf depan kapital)
-        // Contoh: "superadmin" menjadi "Superadmin", "admin" menjadi "Admin"
         val formattedRole = if (userRoleRaw.isNotEmpty()) {
             userRoleRaw.lowercase().replaceFirstChar { it.uppercase() }
         } else {
-            "User" // Default jika kosong
+            "User"
         }
-
-        // Tampilkan dengan tanda kurung agar rapi, misal: (Superadmin)
         tvHeaderRole.text = "$formattedRole"
     }
 

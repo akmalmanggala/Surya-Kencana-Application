@@ -31,6 +31,6 @@ class SplashScreen : AppCompatActivity() {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish() // Tutup Splash Screen agar tidak bisa di-back
-        }, 3000) // Waktu delay 3000ms (3 detik)
+        }, 2000) // Waktu delay 3000ms (3 detik)
     }
 }

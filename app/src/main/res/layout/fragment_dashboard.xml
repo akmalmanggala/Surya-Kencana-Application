@@ -645,6 +645,17 @@
                         android:nestedScrollingEnabled="false"
                         tools:listitem="@layout/item_recent_product"
                         tools:itemCount="3"/>
+
+                    <TextView
+                        android:id="@+id/tvEmptyRecentProduct"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Belum ada produk terbaru"
+                        android:textAlignment="center"
+                        android:textColor="#9E9E9E"
+                        android:textSize="14sp"
+                        android:padding="20dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -693,6 +704,17 @@
                         android:nestedScrollingEnabled="false"
                         tools:listitem="@layout/item_recent_testimoni"
                         tools:itemCount="3"/>
+
+                    <TextView
+                        android:id="@+id/tvEmptyRecentTestimoni"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Belum ada testimoni terbaru"
+                        android:textAlignment="center"
+                        android:textColor="#9E9E9E"
+                        android:textSize="14sp"
+                        android:padding="20dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

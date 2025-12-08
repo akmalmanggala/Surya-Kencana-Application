@@ -9,6 +9,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -29,22 +30,27 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
     private lateinit var historyAdapter: HistoryAdapter
     private lateinit var etSearch: EditText
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    // Simpan semua data asli untuk keperluan filter manual
+    private lateinit var tvEmptyState: TextView
+
+    // List untuk menyimpan semua data (Master Data)
     private var allHistoryList: List<History> = listOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 1. Init Views
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         rvHistory = view.findViewById(R.id.rvRiwayat)
+        tvEmptyState = view.findViewById(R.id.tvEmptyState)
+        etSearch = view.findViewById(R.id.etSearch)
+
         rvHistory.layoutManager = LinearLayoutManager(context)
 
-        // Init Adapter (Handle Delete & Edit)
+        // 2. Init Adapter
         historyAdapter = HistoryAdapter(
             listOf(),
             onDeleteClick = { history -> showDeleteConfirmation(history) },
             onEditClick = { history ->
-                // Navigate to Edit Activity
                 val intent = Intent(context, EditHistoryActivity::class.java)
                 intent.putExtra("ID", history.id)
                 intent.putExtra("TAHUN", history.tahun.toString())
@@ -56,31 +62,25 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
         )
         rvHistory.adapter = historyAdapter
 
+        // 3. Listener Refresh
         swipeRefresh.setOnRefreshListener {
             fetchHistories()
         }
 
+        // 4. Tombol Tambah
         val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddRiwayat)
         btnAdd.setOnClickListener {
             startActivity(Intent(requireContext(), AddHistoryActivity::class.java))
         }
 
-        etSearch = view.findViewById(R.id.etSearch)
+        // 5. Setup Pencarian
         setupSearchListener()
     }
 
     override fun onResume() {
         super.onResume()
-
-        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
-        if (::historyAdapter.isInitialized && ::etSearch.isInitialized) {
-
-            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
-            val keyword = etSearch.text.toString().trim()
-
-            // 3. Panggil fetch dengan kata kunci tersebut
-            fetchHistories(if (keyword.isNotEmpty()) keyword else null)
-        }
+        // Fetch data setiap halaman dibuka (agar data selalu fresh setelah edit/add)
+        fetchHistories()
     }
 
     private fun setupSearchListener() {
@@ -88,41 +88,65 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                val keyword = s.toString().trim().lowercase()
+                val keyword = s.toString().trim()
                 filterData(keyword)
             }
         })
     }
 
-    // Filter Manual di Android (Karena API tidak support search)
+    // --- FUNGSI FILTER & PENCARIAN (PERBAIKAN UTAMA) ---
     private fun filterData(keyword: String) {
-        if (keyword.isEmpty()) {
-            historyAdapter.updateData(allHistoryList)
+        val filteredList = if (keyword.isEmpty()) {
+            allHistoryList
         } else {
-            val filteredList = allHistoryList.filter {
-                it.judul.lowercase().contains(keyword) ||
-                        it.tahun.toString().contains(keyword)
+            // Cari berdasarkan JUDUL atau TAHUN atau DESKRIPSI
+            allHistoryList.filter {
+                it.judul.contains(keyword, ignoreCase = true) ||
+                        it.tahun.toString().contains(keyword) ||
+                        it.deskripsi.contains(keyword, ignoreCase = true)
             }
-            historyAdapter.updateData(filteredList)
+        }
+
+        // Panggil fungsi update UI agar Empty State juga berubah
+        updateListUI(filteredList, keyword)
+    }
+
+    // Fungsi Helper untuk mengatur List dan Teks Kosong
+    private fun updateListUI(list: List<History>, keyword: String) {
+        historyAdapter.updateData(list)
+
+        if (list.isEmpty()) {
+            rvHistory.visibility = View.GONE
+            tvEmptyState.visibility = View.VISIBLE
+
+            if (keyword.isNotEmpty()) {
+                tvEmptyState.text = "Riwayat tidak ditemukan"
+            } else {
+                tvEmptyState.text = "Belum ada Riwayat"
+            }
+        } else {
+            rvHistory.visibility = View.VISIBLE
+            tvEmptyState.visibility = View.GONE
         }
     }
 
-    private fun fetchHistories(keyword: String? = null) {
+    private fun fetchHistories() {
         swipeRefresh.isRefreshing = true
         lifecycleScope.launch {
             try {
-                // Panggil API (Tanpa parameter search)
+                // Ambil semua data
                 val response = ApiClient.instance.getHistories()
 
                 if (response.isSuccessful && response.body() != null) {
-                    allHistoryList = response.body()!!
+                    val rawList = response.body()!!
 
-                    // Urutkan Tahun Terlama ke Terbaru (Ascending) sesuai Controller
-                    // Atau descending jika ingin terbaru diatas
-                    val sortedList = allHistoryList.sortedByDescending { it.tahun }
-                    allHistoryList = sortedList // Update master list
+                    // Urutkan Tahun Terbaru di Atas (Descending)
+                    allHistoryList = rawList.sortedByDescending { it.tahun }
 
-                    historyAdapter.updateData(allHistoryList)
+                    // Tampilkan data (sesuai status pencarian saat ini)
+                    val currentKeyword = etSearch.text.toString().trim()
+                    filterData(currentKeyword)
+
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
@@ -134,7 +158,6 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
         }
     }
 
-    // ... (Fungsi showDeleteConfirmation & deleteHistoryApi sama seperti sebelumnya) ...
     private fun showDeleteConfirmation(data: History) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Riwayat")

@@ -4,10 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
-import android.text.TextWatcher
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -16,11 +17,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.AdminAdapter
 import com.example.suryakencanaapp.api.ApiClient
+import com.example.suryakencanaapp.model.Admin
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-
 
 class AdminFragment : Fragment(R.layout.fragment_admin) {
 
@@ -28,48 +27,44 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
     private lateinit var adminAdapter: AdminAdapter
     private lateinit var etSearch: EditText
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var tvEmptyState: TextView
 
-    private var searchJob: Job? = null
+    // 1. Variabel Master Data
+    private var allAdminList: List<Admin> = listOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         rvAdmin = view.findViewById(R.id.rvAdmin)
-        rvAdmin.layoutManager = LinearLayoutManager(context)
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        swipeRefresh.setOnRefreshListener {
-            fetchAdmins()
-        }
+        tvEmptyState = view.findViewById(R.id.tvEmptyState)
+        etSearch = view.findViewById(R.id.etSearch)
+
+        rvAdmin.layoutManager = LinearLayoutManager(context)
+
         // Init Adapter
         adminAdapter = AdminAdapter(listOf()) {
+            // Callback delete/edit jika ada
         }
         rvAdmin.adapter = adminAdapter
 
+        // Listener Refresh
+        swipeRefresh.setOnRefreshListener {
+            fetchAdmins()
+        }
+
         // Tombol Tambah
-        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddAdmin) // Pastikan ID di XML benar (misal btnAddAdmin)
+        val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddAdmin)
         btnAdd.setOnClickListener {
             startActivity(Intent(requireContext(), AddAdminActivity::class.java))
         }
 
-        etSearch = view.findViewById(R.id.etSearch) // Pastikan ID di XML benar
         setupSearchListener()
-
-        // Fetch Data
-        fetchAdmins()
     }
 
     override fun onResume() {
         super.onResume()
-
-        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
-        if (::adminAdapter.isInitialized && ::etSearch.isInitialized) {
-
-            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
-            val keyword = etSearch.text.toString().trim()
-
-            // 3. Panggil fetch dengan kata kunci tersebut
-            fetchAdmins(if (keyword.isNotEmpty()) keyword else null)
-        }
+        fetchAdmins()
     }
 
     private fun setupSearchListener() {
@@ -78,38 +73,62 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                // Batalkan pencarian sebelumnya
-                searchJob?.cancel()
-
-                searchJob = lifecycleScope.launch {
-                    // Tunggu 800ms agar tidak spam server
-                    delay(800)
-
-                    val keyword = s.toString().trim()
-                    if (keyword.isNotEmpty()) {
-                        fetchAdmins(keyword) // Cari dengan kata kunci
-                    } else {
-                        fetchAdmins(null) // Ambil semua
-                    }
-                }
+                // 2. Filter Langsung
+                val keyword = s.toString().trim()
+                filterData(keyword)
             }
         })
     }
 
-    private fun fetchAdmins(keyword: String? = null) {
+    // 3. Logika Filter Lokal
+    private fun filterData(keyword: String) {
+        val filteredList = if (keyword.isEmpty()) {
+            allAdminList
+        } else {
+            // Filter berdasarkan Username
+            allAdminList.filter {
+                it.username.contains(keyword, ignoreCase = true)
+            }
+        }
+        updateListUI(filteredList, keyword)
+    }
+
+    // 4. Update UI & Empty State
+    private fun updateListUI(list: List<Admin>, keyword: String) {
+        adminAdapter.updateData(list)
+
+        if (list.isEmpty()) {
+            rvAdmin.visibility = View.GONE
+            tvEmptyState.visibility = View.VISIBLE
+
+            if (keyword.isNotEmpty()) {
+                tvEmptyState.text = "Admin tidak ditemukan"
+            } else {
+                tvEmptyState.text = "Belum ada Admin"
+            }
+        } else {
+            rvAdmin.visibility = View.VISIBLE
+            tvEmptyState.visibility = View.GONE
+        }
+    }
+
+    private fun fetchAdmins() {
         swipeRefresh.isRefreshing = true
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
-                val response = ApiClient.instance.getAdmins("Bearer $token", keyword)
+                // 5. Ambil SEMUA data (keyword null)
+                val response = ApiClient.instance.getAdmins("Bearer $token", null)
 
                 if (response.isSuccessful && response.body() != null) {
-                    val listData = response.body()!!
-                    // Sorting terbaru diatas
-                    val sortedList = listData.sortedByDescending { it.id }
-                    adminAdapter.updateData(sortedList)
+                    // Simpan ke Master List
+                    allAdminList = response.body()!!.sortedByDescending { it.id }
+
+                    // Tampilkan sesuai pencarian saat ini
+                    val currentKeyword = etSearch.text.toString().trim()
+                    filterData(currentKeyword)
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
@@ -121,31 +140,4 @@ class AdminFragment : Fragment(R.layout.fragment_admin) {
         }
     }
 
-//    private fun showDeleteConfirmation(admin: Admin) {
-//        AlertDialog.Builder(requireContext())
-//            .setTitle("Hapus Admin")
-//            .setMessage("Yakin ingin menghapus admin '${admin.username}'?")
-//            .setPositiveButton("Hapus") { _, _ -> deleteAdminApi(admin.id) }
-//            .setNegativeButton("Batal", null)
-//            .show()
-//    }
-
-//    private fun deleteAdminApi(id: Int) {
-//        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-//        val token = prefs.getString("TOKEN", "") ?: return
-//
-//        lifecycleScope.launch {
-//            try {
-//                val response = ApiClient.instance.deleteAdmin("Bearer $token", id)
-//                if (response.isSuccessful) {
-//                    Toast.makeText(context, "Admin dihapus!", Toast.LENGTH_SHORT).show()
-//                    fetchAdmins()
-//                } else {
-//                    Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
-//                }
-//            } catch (e: Exception) {
-//                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
 }

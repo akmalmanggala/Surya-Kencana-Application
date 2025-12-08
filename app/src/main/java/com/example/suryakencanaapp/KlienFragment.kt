@@ -9,18 +9,17 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout // Import ini
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.suryakencanaapp.adapter.ClientAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.model.Client
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class KlienFragment : Fragment(R.layout.fragment_klien) {
@@ -28,17 +27,20 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
     private lateinit var rvClient: RecyclerView
     private lateinit var clientAdapter: ClientAdapter
     private lateinit var etSearch: EditText
-    private lateinit var swipeRefresh: SwipeRefreshLayout // Tambahan Variabel
-    private var searchJob: Job? = null
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var tvEmptyState: TextView
+
+    // 1. Master Data List
+    private var allClientList: List<Client> = listOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Init SwipeRefresh
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
-
-        // 2. Setup RecyclerView
+        tvEmptyState = view.findViewById(R.id.tvEmptyState)
         rvClient = view.findViewById(R.id.rvClient)
+        etSearch = view.findViewById(R.id.etSearch)
+
         rvClient.layoutManager = GridLayoutManager(context, 2)
 
         clientAdapter = ClientAdapter(listOf()) { clientToDelete ->
@@ -46,37 +48,22 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
         }
         rvClient.adapter = clientAdapter
 
-        // 3. Listener Manual Refresh (Tarik ke bawah)
+        // Listener Refresh
         swipeRefresh.setOnRefreshListener {
-            val keyword = etSearch.text.toString().trim()
-            fetchClients(if (keyword.isNotEmpty()) keyword else null)
+            fetchClients()
         }
 
-        // 4. Setup Tombol & Search
         val btnAdd = view.findViewById<MaterialButton>(R.id.btnAddClient)
         btnAdd.setOnClickListener {
             startActivity(Intent(requireContext(), AddClientActivity::class.java))
         }
 
-        etSearch = view.findViewById(R.id.etSearch)
         setupSearchListener()
-
-        // JANGAN PANGGIL fetchClients() DI SINI (Biar tidak dobel dengan onResume)
     }
 
-    // 5. Load Otomatis saat masuk halaman
     override fun onResume() {
         super.onResume()
-
-        // 1. Cek Keamanan: Pastikan Adapter DAN EditText sudah siap
-        if (::clientAdapter.isInitialized && ::etSearch.isInitialized) {
-
-            // 2. Ambil kata kunci terakhir (agar pencarian tidak hilang)
-            val keyword = etSearch.text.toString().trim()
-
-            // 3. Panggil fetch dengan kata kunci tersebut
-            fetchClients(if (keyword.isNotEmpty()) keyword else null)
-        }
+        fetchClients()
     }
 
     private fun setupSearchListener() {
@@ -85,53 +72,80 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                searchJob = lifecycleScope.launch {
-                    delay(800)
-                    val keyword = s.toString().trim()
-                    if (keyword.isNotEmpty()) {
-                        fetchClients(keyword)
-                    } else {
-                        fetchClients(null)
-                    }
-                }
+                // 2. Filter Langsung (Tanpa Delay)
+                val keyword = s.toString().trim()
+                filterData(keyword)
             }
         })
     }
 
-    private fun fetchClients(keyword: String? = null) {
-        // Tampilkan loading (putar-putar)
+    // 3. Logika Filter Lokal (Nama Klien / Instansi)
+    private fun filterData(keyword: String) {
+        val filteredList = if (keyword.isEmpty()) {
+            allClientList
+        } else {
+            // PERBAIKAN: Tambahkan `?` dan `== true` untuk menangani data null
+            allClientList.filter {
+                (it.clientName?.contains(keyword, ignoreCase = true) == true) ||
+                        (it.institution?.contains(keyword, ignoreCase = true) == true)
+            }
+        }
+        updateListUI(filteredList, keyword)
+    }
+
+    // 4. Update UI & Empty State
+    private fun updateListUI(list: List<Client>, keyword: String) {
+        clientAdapter.updateData(list)
+
+        if (list.isEmpty()) {
+            rvClient.visibility = View.GONE
+            tvEmptyState.visibility = View.VISIBLE
+
+            if (keyword.isNotEmpty()) {
+                tvEmptyState.text = "Klien tidak ditemukan"
+            } else {
+                tvEmptyState.text = "Belum ada Klien"
+            }
+        } else {
+            rvClient.visibility = View.VISIBLE
+            tvEmptyState.visibility = View.GONE
+        }
+    }
+
+    private fun fetchClients() {
         swipeRefresh.isRefreshing = true
 
         lifecycleScope.launch {
             try {
-                val response = ApiClient.instance.getClients(keyword)
+                // 5. Ambil SEMUA data (param null)
+                val response = ApiClient.instance.getClients(null)
 
                 if (response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
-                    val sortedList = listData.sortedByDescending { it.id }
-                    clientAdapter.updateData(sortedList)
+
+                    // Simpan ke Master List
+                    allClientList = listData.sortedByDescending { it.id }
+
+                    // Tampilkan data sesuai search bar saat ini
+                    val currentKeyword = etSearch.text.toString().trim()
+                    filterData(currentKeyword)
                 } else {
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("CLIENT_API", "Error: ${e.message}")
             } finally {
-                // Matikan loading (PENTING)
                 swipeRefresh.isRefreshing = false
             }
         }
     }
 
-    // ... (Fungsi showDeleteConfirmation dan deleteClientApi SAMA SAJA) ...
-    // Pastikan deleteClientApi memanggil fetchClients() agar list ter-refresh setelah hapus
+    // ... (Fungsi Delete tetap sama) ...
     private fun showDeleteConfirmation(data: Client) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Klien")
             .setMessage("Yakin ingin menghapus ${data.clientName}?")
-            .setPositiveButton("Hapus") { _, _ ->
-                deleteClientApi(data.id)
-            }
+            .setPositiveButton("Hapus") { _, _ -> deleteClientApi(data.id) }
             .setNegativeButton("Batal", null)
             .show()
     }
@@ -148,7 +162,7 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Klien Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
-                    fetchClients() // Refresh list otomatis (spinner akan muncul sebentar)
+                    fetchClients() // Refresh data
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }

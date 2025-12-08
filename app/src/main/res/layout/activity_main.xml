@@ -34,14 +34,25 @@
         android:layout_width="320dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/white"> <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:headerLayout="@layout/nav_header"
-        app:menu="@menu/nav_menu"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/containerLogout"/>
+        android:background="@color/white">
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:backgroundTint="@color/white"
+            app:headerLayout="@layout/nav_header"
+            app:menu="@menu/nav_menu"
+
+
+            app:itemIconTint="@color/nav_item_colors"
+            app:itemTextColor="@color/nav_item_colors"
+
+
+            app:itemShapeFillColor="@color/nav_item_background"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/containerLogout"/>
 
         <LinearLayout
             android:id="@+id/containerLogout"
@@ -62,12 +73,13 @@
 
             <Button
                 android:id="@+id/btnLogoutSidebar"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Logout"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                android:backgroundTint="#D32F2F"
+
+                android:backgroundTint="@color/danger_red"
                 app:iconGravity="textStart"
                 app:iconTint="@color/white"/>
         </LinearLayout>
