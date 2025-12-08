@@ -203,7 +203,7 @@ class AddProductActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@AddProductActivity, "Produk Berhasil Disimpan!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AddProductActivity, "Produk Berhasil Ditambahkan!", Toast.LENGTH_LONG).show()
                     finish()
                 } else {
                     val errorMsg = response.errorBody()?.string()

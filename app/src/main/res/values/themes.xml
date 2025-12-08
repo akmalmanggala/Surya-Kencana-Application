@@ -1,6 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.SuryaKencanaApp" parent="Theme.Material3.Light.NoActionBar">
-
         <item name="colorPrimary">@color/brown_primary</item>
         <item name="colorPrimaryVariant">@color/brown_dark</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -11,6 +10,5 @@
         <item name="android:colorBackground">@color/background_app</item>
         <item name="android:textColorPrimary">@color/text_dark</item>
     </style>
-
-    <style name="Theme.ProjectAnda" parent="Base.Theme.SuryaKencanaApp" />
+    <style name="Theme.ProjectAnda" parent="Base.Theme.SuryaKencanaApp"/>
 </resources>

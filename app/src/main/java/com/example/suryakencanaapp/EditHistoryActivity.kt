@@ -201,7 +201,7 @@ class EditHistoryActivity : AppCompatActivity() {
 
         previewAlbumUris.removeAt(position)
         albumAdapter.notifyItemRemoved(position)
-
+        albumAdapter.notifyItemRangeChanged(position, previewAlbumUris.size)
         if (previewAlbumUris.isEmpty()) rvAlbumPreview.visibility = View.GONE
     }
 
@@ -265,7 +265,7 @@ class EditHistoryActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@EditHistoryActivity, "Berhasil Diupdate!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@EditHistoryActivity, "Riwayat Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     Toast.makeText(this@EditHistoryActivity, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()

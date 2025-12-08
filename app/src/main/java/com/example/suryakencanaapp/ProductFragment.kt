@@ -149,7 +149,7 @@ class ProductFragment : Fragment(R.layout.fragment_product) {
                 val response = ApiClient.instance.deleteProduct("Bearer $token", id)
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Produk berhasil dihapus", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Produk Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
                     fetchProducts() // Refresh list otomatis
                 } else {
                     val errorMsg = response.errorBody()?.string()

@@ -15,7 +15,14 @@ object FileUtils {
     fun getFileFromUri(context: Context, uri: Uri): File? {
         return try {
             val contentResolver = context.contentResolver
-            val fileName = "upload_temp_${System.currentTimeMillis()}.jpg"
+
+            // 1. CEK TIPE FILE (PNG atau JPG?)
+            val mimeType = contentResolver.getType(uri)
+            val isPng = mimeType == "image/png"
+            val extension = if (isPng) ".png" else ".jpg"
+
+            // 2. Buat nama file sesuai ekstensi aslinya
+            val fileName = "upload_temp_${System.currentTimeMillis()}$extension"
             val tempFile = File(context.cacheDir, fileName)
 
             val inputStream: InputStream? = contentResolver.openInputStream(uri)
@@ -24,8 +31,8 @@ object FileUtils {
             inputStream?.close()
             outputStream.close()
 
-            // PROSES KOMPRESI + RESIZE
-            val compressedFile = compressImage(tempFile)
+            // 3. PROSES KOMPRESI (Kirim info apakah ini PNG)
+            val compressedFile = compressImage(tempFile, isPng)
 
             Log.d("FileUtils", "Size Akhir: ${compressedFile.length() / 1024} KB")
 
@@ -36,26 +43,34 @@ object FileUtils {
         }
     }
 
-    private fun compressImage(file: File): File {
+    private fun compressImage(file: File, isPng: Boolean): File {
         try {
-            // 1. Cek Ukuran Asli Dulu (Tanpa memuat gambar ke memori)
+            // 1. Cek Ukuran Asli
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
             BitmapFactory.decodeFile(file.path, options)
 
-            // 2. Hitung Skala (Agar max resolusi cuma 1280px, misal)
-            // Ini yang bikin HP kentang pun jadi ngebut!
+            // 2. Hitung Skala (Resize tetap dilakukan agar HP tidak berat)
             options.inSampleSize = calculateInSampleSize(options, 1280, 1280)
 
-            // 3. Decode Ulang dengan Ukuran Kecil
+            // 3. Decode Ulang
             options.inJustDecodeBounds = false
             val bitmap = BitmapFactory.decodeFile(file.path, options)
 
-            // 4. Kompres & Timpa File
+            // 4. Siapkan Stream
             val outStream = ByteArrayOutputStream()
-            // Kualitas 70% sudah sangat bagus jika resolusi sudah dikecilkan
-            bitmap?.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
 
+            // --- PERBAIKAN UTAMA DI SINI ---
+            if (isPng) {
+                // Jika PNG, gunakan CompressFormat.PNG agar transparan TIDAK HILANG
+                // Note: PNG mengabaikan parameter quality (tetap lossless), jadi file mungkin agak lebih besar dari JPG
+                bitmap?.compress(Bitmap.CompressFormat.PNG, 100, outStream)
+            } else {
+                // Jika JPG, kompres 70% biar kecil
+                bitmap?.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
+            }
+
+            // 5. Timpa file lama
             val fileOut = FileOutputStream(file)
             fileOut.write(outStream.toByteArray())
             fileOut.flush()
@@ -68,7 +83,6 @@ object FileUtils {
         }
     }
 
-    // Rumus Matematika untuk mengecilkan gambar
     private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
         val (height: Int, width: Int) = options.run { outHeight to outWidth }
         var inSampleSize = 1

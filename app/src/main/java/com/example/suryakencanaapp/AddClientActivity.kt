@@ -31,6 +31,7 @@ class AddClientActivity : AppCompatActivity() {
     private lateinit var btnCancel: Button
     private lateinit var btnUpload: LinearLayout
     private lateinit var tvUploadLabel: TextView
+    private lateinit var tvUploadLabel2: TextView
     private lateinit var imgUploadIcon: ImageView // Ikon panah
     private lateinit var imgPreviewReal: ImageView // Preview gambar asli
     private lateinit var tvPageTitle: TextView
@@ -54,11 +55,12 @@ class AddClientActivity : AppCompatActivity() {
         btnCancel = findViewById(R.id.btnCancel)
         btnUpload = findViewById(R.id.btnUploadLogo)
         tvUploadLabel = findViewById(R.id.tvUploadInfo)
+        tvUploadLabel2 = findViewById(R.id.tvUploadInfo2)
         imgUploadIcon = findViewById(R.id.imgUploadIcon)
         imgPreviewReal = findViewById(R.id.imgPreviewReal)
         tvPageTitle = findViewById(R.id.tvPageTitle)
         tvPageTitle.text = "Tambah Klien Baru"
-        btnSave.text = "Tambah Testimoni"
+        btnSave.text = "Tambah Klien"
     }
 
     private fun setupListeners() {
@@ -81,7 +83,9 @@ class AddClientActivity : AppCompatActivity() {
                 imgPreviewReal.setImageURI(uri)
 
                 // Ubah teks label agar user tahu gambar sudah masuk
-                tvUploadLabel.text = "Gambar Terpilih (Ketuk untuk ganti)"
+                tvUploadLabel.text = "Gambar Utama Terpilih"
+                tvUploadLabel2.text = "Tekan lagi untuk mengganti gambar"
+
 
                 // 2. PROSES DATA (FILE)
                 // Konversi dari URI (content://...) ke File (java.io.File)
@@ -143,7 +147,7 @@ class AddClientActivity : AppCompatActivity() {
                 val response = ApiClient.instance.addClient(authHeader, reqName, reqInst, bodyImage)
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@AddClientActivity, "Klien Berhasil Disimpan!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AddClientActivity, "Klien Berhasil Ditambahkan!", Toast.LENGTH_LONG).show()
                     finish()
                 } else {
                     val errorMsg = response.errorBody()?.string()
@@ -162,10 +166,10 @@ class AddClientActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
             btnSave.isEnabled = false
-            btnSave.text = "Mengupload..."
+            btnSave.text = "Uploading..."
         } else {
             btnSave.isEnabled = true
-            btnSave.text = "Tambah Client"
+            btnSave.text = "Tambah Klien"
         }
     }
 }

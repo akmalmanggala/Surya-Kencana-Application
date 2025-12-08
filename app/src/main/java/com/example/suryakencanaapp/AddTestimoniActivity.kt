@@ -109,7 +109,7 @@ class AddTestimoniActivity : AppCompatActivity() {
             try {
                 // Ubah teks tombol jadi "Loading..."
                 btnSave.isEnabled = false
-                btnSave.text = "Menyimpan..."
+                btnSave.text = "Uploading..."
 
                 // PERHATIKAN: Parameter pertama sekarang adalah 'authHeader'
                 val response = ApiClient.instance.addTestimoni(
@@ -121,7 +121,7 @@ class AddTestimoniActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(applicationContext, "Berhasil menambah testimoni!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Testimoni Berhasil Ditambahkan!", Toast.LENGTH_SHORT).show()
                     finish() // Tutup activity ini & kembali ke list
                 } else {
                     Toast.makeText(applicationContext, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()

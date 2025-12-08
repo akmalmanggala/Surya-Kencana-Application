@@ -152,7 +152,7 @@ class RiwayatFragment : Fragment(R.layout.fragment_riwayat) {
             try {
                 val response = ApiClient.instance.deleteHistory("Bearer $token", id)
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Riwayat Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
                     fetchHistories()
                 } else {
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()

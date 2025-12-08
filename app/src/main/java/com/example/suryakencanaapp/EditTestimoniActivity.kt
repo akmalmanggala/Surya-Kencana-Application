@@ -107,7 +107,7 @@ class EditTestimoniActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(applicationContext, "Data berhasil diubah!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Testimoni Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                     finish() // Tutup halaman edit
                 } else {
                     Toast.makeText(applicationContext, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()

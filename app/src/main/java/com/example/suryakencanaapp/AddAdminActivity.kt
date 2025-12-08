@@ -52,7 +52,7 @@ class AddAdminActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 btnSave.isEnabled = false
-                btnSave.text = "Menyimpan..."
+                btnSave.text = "Uploading..."
 
                 val response = ApiClient.instance.addAdmin("Bearer $token", user, pass)
 

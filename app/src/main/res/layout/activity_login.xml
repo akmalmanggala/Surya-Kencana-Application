@@ -95,8 +95,6 @@
             android:textStyle="bold"
             app:backgroundTint="@color/brown_primary"
             app:cornerRadius="8dp" />
-
-
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

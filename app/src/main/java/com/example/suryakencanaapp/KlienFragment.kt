@@ -147,7 +147,7 @@ class KlienFragment : Fragment(R.layout.fragment_klien) {
                 val response = ApiClient.instance.deleteClient("Bearer $token", id)
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Klien Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
                     fetchClients() // Refresh list otomatis (spinner akan muncul sebentar)
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()

@@ -152,7 +152,7 @@ class TestimoniFragment : Fragment(R.layout.fragment_testimoni) {
                 val response = ApiClient.instance.deleteTestimoni("Bearer $token", id)
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Testimoni Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
                     fetchTestimonies() // Refresh otomatis
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()

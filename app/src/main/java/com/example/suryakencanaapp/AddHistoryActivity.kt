@@ -193,7 +193,7 @@ class AddHistoryActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@AddHistoryActivity, "Berhasil!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddHistoryActivity, "Riwayat Berhasil Ditambahkan!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     val errorMsg = response.errorBody()?.string()
@@ -211,7 +211,7 @@ class AddHistoryActivity : AppCompatActivity() {
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
             btnSave.isEnabled = false
-            btnSave.text = "Menyimpan..."
+            btnSave.text = "Uploading..."
         } else {
             btnSave.isEnabled = true
             btnSave.text = "Tambah Riwayat"

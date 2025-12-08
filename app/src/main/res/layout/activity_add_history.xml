@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Tap to Upload Image"
+                android:text="Tekan untuk Mengupload Gambar"
                 android:textColor="@color/brown_primary"
                 android:textStyle="bold" />
 
@@ -115,7 +115,7 @@
                 android:id="@+id/tvUploadInfo2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Maks. size: 100MB"
+                android:text="Max size: 100MB"
                 android:textSize="10sp" />
         </LinearLayout>
 
@@ -153,8 +153,7 @@
                     android:layout_height="wrap_content"
                     android:text="Pilih Banyak Gambar"
                     android:textColor="@color/brown_primary"
-                    android:textStyle="bold"
-                    android:layout_marginStart="8dp"/>
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:text="Maks. 100MB per gambar"

@@ -9,21 +9,47 @@
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <TextView
-        android:id="@+id/tvHeaderName"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Halo, Admin"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
 
-    <TextView
-        android:id="@+id/tvHeaderSub"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="PT. Surya Kencana"
-        android:textColor="#E0E0E0"
-        android:textSize="14sp" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvHeaderName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Halo, Admin"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvHeaderSub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PT. Surya Kencana"
+                android:textColor="#E0E0E0"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvHeaderRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:textSize="12sp"
+            android:background="@drawable/bg_rounded_status"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"/>
+    </LinearLayout>
 
 </LinearLayout>

@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.utils.FileUtils
 import com.google.android.material.button.MaterialButton
@@ -27,7 +29,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan XML benar
+class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) {
 
     // UI Variables
     private lateinit var etCompanyName: TextInputEditText
@@ -59,7 +61,6 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
     private lateinit var btnSave: MaterialButton
     private lateinit var swipeRefresh: SwipeRefreshLayout
 
-
     // Data File
     private var selectedLogoFile: File? = null
 
@@ -67,7 +68,6 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
         super.onViewCreated(view, savedInstanceState)
         initViews(view)
 
-        // Listeners
         btnUploadLogo.setOnClickListener { openGallery() }
         btnSave.setOnClickListener { saveSettings() }
 
@@ -75,7 +75,7 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
             fetchSettings()
         }
 
-        // Fetch Data
+        // Fetch Data Awal
         fetchSettings()
     }
 
@@ -113,9 +113,8 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
 
     override fun onResume() {
         super.onResume()
-        swipeRefresh.post {
-            fetchSettings()
-        }
+        // Hapus pemanggilan fetchSettings di sini jika menyebabkan data "lompat" saat pilih gambar
+        // Cukup panggil saat onViewCreated atau SwipeRefresh
     }
 
     // --- GET DATA ---
@@ -131,31 +130,32 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
                     etCompanyName.setText(data.companyName)
                     etHeroTitle.setText(data.heroTitle)
                     etHeroSubtitle.setText(data.heroSubtitle)
-
                     etVisionLabel.setText(data.visionLabel)
                     etVisionTitle.setText(data.visionTitle)
-
                     etProductLabel.setText(data.productLabel)
                     etProductTitle.setText(data.productTitle)
-
                     etClientLabel.setText(data.clientLabel)
                     etClientTitle.setText(data.clientTitle)
-
                     etHistoryLabel.setText(data.historyLabel)
                     etHistoryTitle.setText(data.historyTitle)
-
                     etTestiLabel.setText(data.testiLabel)
                     etTestiTitle.setText(data.testiTitle)
-
                     etContactLabel.setText(data.contactLabel)
                     etContactTitle.setText(data.contactTitle)
 
-                    // Isi Logo (Jika ada)
+                    // Isi Logo
                     if (!data.companyLogoUrl.isNullOrEmpty()) {
                         showPreview(true)
+
+                        // --- PERBAIKAN GLIDE CACHE ---
+                        // Menggunakan signature waktu sekarang agar Glide TIDAK mengambil cache lama
+                        // jika URL-nya sama.
                         Glide.with(this@PengaturanFragment)
                             .load(data.companyLogoUrl)
+                            .signature(ObjectKey(System.currentTimeMillis().toString())) // <--- PENTING
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(imgLogoPreview)
+
                         tvUploadInfo.text = "Logo Saat Ini (Ketuk untuk ganti)"
                     }
                 }
@@ -196,13 +196,23 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
 
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // 2. Siapkan Logo (Jika ada file baru)
+                // 2. Siapkan Logo (DENGAN DETEKSI FORMAT OTOMATIS)
                 var bodyLogo: MultipartBody.Part? = null
+
                 if (selectedLogoFile != null) {
-                    val mimeType = if (selectedLogoFile!!.extension.equals("png", true)) "image/png" else "image/jpeg"
+                    // Cek apakah file aslinya PNG atau JPG (dari FileUtils)
+                    val isPng = selectedLogoFile!!.extension.equals("png", true)
+
+                    // Tentukan MimeType yang benar
+                    val mimeType = if (isPng) "image/png" else "image/jpeg"
+
+                    // Tentukan Ekstensi nama file yang benar
+                    val extension = if (isPng) "png" else "jpg"
+                    val safeFileName = "company_logo_${System.currentTimeMillis()}.$extension"
+
+                    // Buat Request Body
                     val requestFile = selectedLogoFile!!.asRequestBody(mimeType.toMediaTypeOrNull())
-                    // Nama field 'company_logo' sesuai Controller
-                    bodyLogo = MultipartBody.Part.createFormData("company_logo", selectedLogoFile!!.name, requestFile)
+                    bodyLogo = MultipartBody.Part.createFormData("company_logo", safeFileName, requestFile)
                 }
 
                 // 3. Kirim
@@ -221,12 +231,17 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Pengaturan Berhasil Disimpan!", Toast.LENGTH_SHORT).show()
+                    selectedLogoFile = null // Reset pilihan file
+                    fetchSettings() // Refresh tampilan
                 } else {
-                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("UPDATE_FAIL", "Error Server: $errorBody")
+                    Toast.makeText(context, "Gagal: ${response.code()} - Cek Logcat", Toast.LENGTH_LONG).show()
                 }
 
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             } finally {
                 btnSave.isEnabled = true
                 btnSave.text = "Simpan Pengaturan"
@@ -239,8 +254,9 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
         if (uri != null) {
             showPreview(true)
             imgLogoPreview.setImageURI(uri)
-            tvUploadInfo.text = "Logo Baru Terpilih"
+            tvUploadInfo.text = "Logo Baru Terpilih (Belum Disimpan)"
 
+            // Gunakan FileUtils yang sudah dikompresi
             selectedLogoFile = FileUtils.getFileFromUri(requireContext(), uri)
         }
     }
@@ -249,21 +265,19 @@ class PengaturanFragment : Fragment(R.layout.fragment_pengaturan) { // Pastikan 
         galleryLauncher.launch("image/*")
     }
 
-    // Helper untuk UI Preview
     private fun showPreview(show: Boolean) {
         if (show) {
-            // Jika ada logo: Sembunyikan panah, Munculkan gambar logo
             imgUploadIcon.visibility = View.GONE
             imgLogoPreview.visibility = View.VISIBLE
         } else {
-            // Jika kosong: Munculkan panah, Sembunyikan tempat logo
             imgUploadIcon.visibility = View.VISIBLE
             imgLogoPreview.visibility = View.GONE
         }
     }
 
-    // Helper untuk Text RequestBody
     private fun createPart(editText: EditText): RequestBody {
-        return editText.text.toString().trim().toRequestBody("text/plain".toMediaTypeOrNull())
+        val text = editText.text.toString().trim()
+        // Kirim string kosong ("") jika field kosong, jangan null
+        return text.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 }

@@ -99,13 +99,20 @@
 
                     <TextView
                         android:id="@+id/tvUploadInfo"
-                        android:text="Tap to Upload Logo"
+                        android:text="Tekan untuk Mengupload Logo"
                         android:textColor="@color/brown_primary"
                         android:textStyle="bold"
                         android:textSize="12sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"/>
+
+                    <TextView
+                        android:id="@+id/tvUploadInfo2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Max size: 100MB"
+                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <TextView

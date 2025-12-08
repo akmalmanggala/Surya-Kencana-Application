@@ -31,7 +31,7 @@ import java.io.File
 
 class HeroFragment : Fragment(R.layout.fragment_hero) {
 
-    // UI Variables
+    // ... (Variabel UI tetap sama) ...
     private lateinit var etLocation: TextInputEditText
     private lateinit var etHeroTitle: TextInputEditText
     private lateinit var etStatMachine: TextInputEditText
@@ -47,26 +47,23 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initViews(view)
 
-        // Setup RecyclerView
         rvHeroImages.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         heroImageAdapter = HeroAdapter(listOf(), listOf()) { pathToDelete ->
             showDeleteConfirmation(pathToDelete)
         }
         rvHeroImages.adapter = heroImageAdapter
 
-        // Listeners
         btnAddImage.setOnClickListener { openGallery() }
         btnSave.setOnClickListener { saveChanges() }
 
-        // Fetch Data
         swipeRefresh.setOnRefreshListener {
             fetchHeroData()
         }
     }
 
+    // ... (initViews, onResume, fetchHeroData TETAP SAMA) ...
     private fun initViews(view: View) {
         etLocation = view.findViewById(R.id.etLocation)
         etHeroTitle = view.findViewById(R.id.etHeroTitle)
@@ -83,9 +80,7 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
 
     override fun onResume() {
         super.onResume()
-        swipeRefresh.post {
-            fetchHeroData()
-        }
+        swipeRefresh.post { fetchHeroData() }
     }
 
     private fun fetchHeroData() {
@@ -97,8 +92,6 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                     val list = response.body()!!
                     if (list.isNotEmpty()) {
                         val data = list[0]
-
-                        // Isi Form
                         etLocation.setText(data.location)
                         etHeroTitle.setText(data.title)
                         etStatMachine.setText(data.machines?.toString() ?: "0")
@@ -107,7 +100,6 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                         etStatExp.setText(data.experienceYears?.toString() ?: "0")
                         etStatTrust.setText(data.trustYears?.toString() ?: "0")
 
-                        // Isi Gambar Slider
                         val urls = data.backgroundUrls ?: listOf()
                         val paths = data.backgroundPaths ?: listOf()
                         heroImageAdapter.updateData(urls, paths)
@@ -121,22 +113,26 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
         }
     }
 
-    // --- FITUR 1: SIMPAN PERUBAHAN TEKS ---
+    // --- 1. SIMPAN PERUBAHAN TEKS ---
     private fun saveChanges() {
         updateHeroApi(
-            newImageFile = null, // Tidak ada gambar baru
-            deletedPath = null   // Tidak ada yang dihapus
+            newImageFile = null,
+            deletedPath = null,
+            actionType = "save_text" // Tipe Aksi: Simpan Teks
         )
     }
 
-    // --- FITUR 2: TAMBAH GAMBAR ---
+    // --- 2. TAMBAH GAMBAR ---
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             val file = FileUtils.getFileFromUri(requireContext(), uri)
             if (file != null) {
-                // Langsung upload begitu gambar dipilih
                 Toast.makeText(context, "Mengupload gambar...", Toast.LENGTH_SHORT).show()
-                updateHeroApi(newImageFile = file, deletedPath = null)
+                updateHeroApi(
+                    newImageFile = file,
+                    deletedPath = null,
+                    actionType = "upload_image" // Tipe Aksi: Upload Gambar
+                )
             }
         }
     }
@@ -145,28 +141,33 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
         galleryLauncher.launch("image/*")
     }
 
-    // --- FITUR 3: HAPUS GAMBAR ---
+    // --- 3. HAPUS GAMBAR ---
     private fun showDeleteConfirmation(path: String) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Gambar")
             .setMessage("Yakin ingin menghapus gambar ini dari slider?")
             .setPositiveButton("Hapus") { _, _ ->
                 Toast.makeText(context, "Menghapus gambar...", Toast.LENGTH_SHORT).show()
-                updateHeroApi(newImageFile = null, deletedPath = path)
+                updateHeroApi(
+                    newImageFile = null,
+                    deletedPath = path,
+                    actionType = "delete_image" // Tipe Aksi: Hapus Gambar
+                )
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    // --- FUNGSI UPDATE SENTRAL (Menangani Semua Kasus) ---
-    private fun updateHeroApi(newImageFile: File?, deletedPath: String?) {
+    // --- UPDATE HERO API DENGAN PESAN DINAMIS ---
+    // Tambahkan parameter 'actionType'
+    private fun updateHeroApi(newImageFile: File?, deletedPath: String?, actionType: String) {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
                 btnSave.isEnabled = false
-                btnSave.text = "Memproses..."
+                btnSave.text = "Updating..."
 
                 // 1. Siapkan Text Body
                 val location = createPart(etLocation.text.toString())
@@ -177,46 +178,63 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
                 val exp = createPart(etStatExp.text.toString())
                 val trust = createPart(etStatTrust.text.toString())
 
-                // 2. Siapkan Gambar Baru (Jika ada)
+                // 2. Siapkan Gambar Baru
                 val newImagesList = if (newImageFile != null) {
                     val reqFile = newImageFile.asRequestBody("image/*".toMediaTypeOrNull())
-                    // Nama field array: backgrounds[]
                     listOf(MultipartBody.Part.createFormData("backgrounds[]", newImageFile.name, reqFile))
                 } else {
                     null
                 }
 
-                // 3. Siapkan Path Hapus (Jika ada)
+                // 3. Siapkan Path Hapus
                 val deletedImagesList = if (deletedPath != null) {
-                    // Buat List berisi 1 item Part
-                    val pathBody = createPart(deletedPath) // createPart = RequestBody text
-
-                    // Kuncinya: Nama field harus "deleted_backgrounds[]"
+                    val pathBody = createPart(deletedPath)
                     listOf(MultipartBody.Part.createFormData("deleted_backgrounds[]", null, pathBody))
                 } else {
                     null
                 }
 
-                // 4. Kirim Request
                 val response = ApiClient.instance.updateHero(
                     "Bearer $token",
                     location, title, machine, client, customer, exp, trust,
                     newImagesList,
-                    deletedImagesList // Kirim List Part tadi
+                    deletedImagesList
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Berhasil diperbarui!", Toast.LENGTH_SHORT).show()
-                    fetchHeroData() // Refresh agar tampilan sinkron
+                    // --- LOGIKA PESAN SUKSES ---
+                    val successMsg = when (actionType) {
+                        "upload_image" -> "Berhasil Menambah Gambar!"
+                        "delete_image" -> "Berhasil Menghapus Gambar!"
+                        else -> "Hero Berhasil Diperbarui!" // save_text
+                    }
+                    Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
+
+                    fetchHeroData()
                 } else {
-                    val err = response.errorBody()?.string()
-                    Log.e("HERO_UPDATE", "Gagal: $err")
-                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    // --- LOGIKA PESAN GAGAL ---
+                    val errorMsg = when (actionType) {
+                        "upload_image" -> "Gagal Mengupload Gambar!"
+                        "delete_image" -> "Gagal Menghapus Gambar!"
+                        else -> "Gagal Menyimpan Data!"
+                    }
+
+                    // (Opsional) Tampilkan error spesifik dari server di Logcat
+                    val serverError = response.errorBody()?.string()
+                    Log.e("HERO_UPDATE", "Server Error: $serverError")
+
+                    Toast.makeText(context, "$errorMsg (${response.code()})", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
-                Log.e("HERO_UPDATE", "Error: ${e.message}")
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // --- LOGIKA PESAN ERROR KONEKSI ---
+                val exMsg = when (actionType) {
+                    "upload_image" -> "Error Upload: ${e.message}"
+                    "delete_image" -> "Error Hapus: ${e.message}"
+                    else -> "Error Simpan: ${e.message}"
+                }
+                Toast.makeText(context, exMsg, Toast.LENGTH_SHORT).show()
+                Log.e("HERO_UPDATE", "Exception: ${e.message}")
             } finally {
                 btnSave.isEnabled = true
                 btnSave.text = "Simpan Perubahan"
@@ -224,7 +242,6 @@ class HeroFragment : Fragment(R.layout.fragment_hero) {
         }
     }
 
-    // Helper untuk buat RequestBody string
     private fun createPart(value: String): RequestBody {
         return value.toRequestBody("text/plain".toMediaTypeOrNull())
     }

@@ -15,11 +15,11 @@ import com.example.suryakencanaapp.R
 import com.example.suryakencanaapp.model.Product
 import java.text.NumberFormat
 import java.util.Locale
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 class ProdukAdapter(
     private var productList: MutableList<Product>,
     private val onDeleteClick: (Product) -> Unit, // Callback klik hapus
-    private val onEditClick: (Product) -> Unit    // Callback klik edit
 ) : RecyclerView.Adapter<ProdukAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -54,8 +54,7 @@ class ProdukAdapter(
 
             Glide.with(holder.itemView.context)
                 .load(product.imageUrl) // URL SUDAH LENGKAP DARI API
-                .centerCrop()
-                .placeholder(android.R.color.darker_gray)
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // <--- PENTING: Simpan semua versi
                 .into(holder.imgProduct)
         } else {
             holder.tvNoImage.visibility = View.VISIBLE

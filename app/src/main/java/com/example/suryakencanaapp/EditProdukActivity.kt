@@ -214,6 +214,7 @@ class EditProdukActivity : AppCompatActivity() {
 
         previewAlbumUris.removeAt(position)
         albumAdapter.notifyItemRemoved(position)
+        albumAdapter.notifyItemRangeChanged(position, previewAlbumUris.size)
         if (previewAlbumUris.isEmpty()) rvAlbumPreview.visibility = View.GONE
     }
 
@@ -276,7 +277,7 @@ class EditProdukActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@EditProdukActivity, "Update Berhasil!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@EditProdukActivity, "Produk Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     val errorMsg = response.errorBody()?.string()

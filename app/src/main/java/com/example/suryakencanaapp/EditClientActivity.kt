@@ -178,7 +178,7 @@ class EditClientActivity : AppCompatActivity() {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@EditClientActivity, "Berhasil Diupdate!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@EditClientActivity, "Klien Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                     finish() // Kembali ke list
                 } else {
                     Toast.makeText(this@EditClientActivity, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()

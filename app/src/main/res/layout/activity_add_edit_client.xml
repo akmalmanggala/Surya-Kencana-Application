@@ -85,12 +85,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Click to upload or drag and drop"
+                android:text="Tekan untuk Mengupload Gambar"
                 android:textColor="@color/brown_primary"
                 android:textStyle="bold"/>
 
             <TextView
-                android:text="Max size: 5MB"
+                android:id="@+id/tvUploadInfo2"
+                android:text="Max size: 100MB"
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>

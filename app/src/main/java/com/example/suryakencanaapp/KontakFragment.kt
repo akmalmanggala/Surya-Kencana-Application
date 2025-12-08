@@ -106,7 +106,7 @@ class KontakFragment : Fragment(R.layout.fragment_kontak) { // Pastikan nama XML
         lifecycleScope.launch {
             try {
                 btnSave.isEnabled = false
-                btnSave.text = "Menyimpan..."
+                btnSave.text = "Updating..."
 
                 // Kirim ke API
                 val response = ApiClient.instance.updateContact(

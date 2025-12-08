@@ -8,8 +8,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy // PENTING: Tambahkan Import ini
-import com.bumptech.glide.request.RequestOptions // PENTING: Tambahkan Import ini
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.suryakencanaapp.R
 
 class AlbumImageAdapter(
@@ -30,26 +29,24 @@ class AlbumImageAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val uri = uriList[position]
 
-        // --- OPTIMASI GLIDE (AGAR TIDAK LEMOT) ---
+        // Load gambar dengan Glide (Optimasi yang sudah kita bahas sebelumnya)
         Glide.with(holder.itemView.context)
             .load(uri)
-            // 1. Override: Paksa ubah ukuran jadi kecil (misal 300x300 pixel)
-            // Karena preview di layar HP cuma kecil, ini akan SANGAT mempercepat loading
             .override(300, 300)
-
-            // 2. DiskCache: Simpan hasil download agar kalau dibuka lagi langsung muncul
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-
-            // 3. Thumbnail: Tampilkan versi buram dulu (0.1x ukuran) sambil nunggu yang jelas
             .thumbnail(0.1f)
-
             .centerCrop()
             .error(android.R.drawable.stat_notify_error)
             .into(holder.img)
-        // -----------------------------------------
 
+        // --- PERBAIKAN BUG HAPUS ---
         holder.btnDelete.setOnClickListener {
-            onRemoveClick(position)
+            // Gunakan 'adapterPosition' agar selalu dapat posisi terbaru saat diklik
+            val currentPosition = holder.adapterPosition
+
+            // Cek keamanan agar tidak crash jika item sedang animasi dihapus
+            if (currentPosition != RecyclerView.NO_POSITION) {
+                onRemoveClick(currentPosition)
+            }
         }
     }
 

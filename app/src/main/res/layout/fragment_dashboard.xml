@@ -180,104 +180,6 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="#E0E0E0">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp">
-                        <TextView
-                            android:text="Produk Terbaru"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_dark"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                        <TextView
-                            android:id="@+id/tvSeeAllProducts"
-                            android:text="Lihat Semua"
-                            android:textSize="12sp"
-                            android:textColor="@color/brown_primary"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                    </RelativeLayout>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvRecentProducts"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        tools:listitem="@layout/item_recent_product"
-                        tools:itemCount="3"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="#E0E0E0">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp">
-                        <TextView
-                            android:text="Testimoni Terbaru"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_dark"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                        <TextView
-                            android:id="@+id/tvSeeAllTestimonies"
-                            android:text="Lihat Semua"
-                            android:textSize="12sp"
-                            android:textColor="@color/brown_primary"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                    </RelativeLayout>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvRecentTestimoni"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        tools:listitem="@layout/item_recent_testimoni"
-                        tools:itemCount="3"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-
             <TextView
                 android:text="Akses Cepat"
                 android:textSize="18sp"
@@ -291,6 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none"
+                android:layout_marginBottom="24dp"
                 android:overScrollMode="never">
 
                 <LinearLayout
@@ -697,9 +600,101 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <Space
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="50dp"/>
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp">
+                        <TextView
+                            android:text="Produk Terbaru"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                        <TextView
+                            android:id="@+id/tvSeeAllProducts"
+                            android:text="Lihat Semua"
+                            android:textSize="12sp"
+                            android:textColor="@color/brown_primary"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </RelativeLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecentProducts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_recent_product"
+                        tools:itemCount="3"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp">
+                        <TextView
+                            android:text="Testimoni Terbaru"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                        <TextView
+                            android:id="@+id/tvSeeAllTestimonies"
+                            android:text="Lihat Semua"
+                            android:textSize="12sp"
+                            android:textColor="@color/brown_primary"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </RelativeLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecentTestimoni"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_recent_testimoni"
+                        tools:itemCount="3"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

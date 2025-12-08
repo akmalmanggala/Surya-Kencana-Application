@@ -9,9 +9,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.suryakencanaapp.EditClientActivity
 import com.example.suryakencanaapp.R
 import com.example.suryakencanaapp.model.Client
+
 
 class ClientAdapter(
     private var clientList: List<Client>,
@@ -40,8 +42,7 @@ class ClientAdapter(
         if (!data.logoUrl.isNullOrEmpty()) {
             Glide.with(holder.itemView.context)
                 .load(data.logoUrl)
-                .placeholder(R.drawable.package_2_24dp_ffffff_fill0_wght400_grad0_opsz24) // Ganti icon placeholder jika ada
-                .centerInside() // Gunakan centerInside agar logo tidak terpotong (fit)
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // <--- PENTING: Simpan semua versi
                 .into(holder.imgLogo)
         }
 

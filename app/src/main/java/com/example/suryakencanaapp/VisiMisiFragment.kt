@@ -131,7 +131,7 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
         lifecycleScope.launch {
             try {
                 btnSave.isEnabled = false
-                btnSave.text = "Menyimpan..."
+                btnSave.text = "Updating..."
 
                 val response = ApiClient.instance.updateVisiMisi(
                     "Bearer $token",
@@ -140,7 +140,7 @@ class VisiMisiFragment : Fragment(R.layout.fragment_visi_misi) {
                 )
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Visi Misi Berhasil Diupdate!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Visi Misi Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
