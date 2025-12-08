@@ -20,6 +20,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 class ProdukAdapter(
     private var productList: MutableList<Product>,
     private val onDeleteClick: (Product) -> Unit, // Callback klik hapus
+    private val onEditClick: (Product) -> Unit    // Callback klik edit
 ) : RecyclerView.Adapter<ProdukAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
