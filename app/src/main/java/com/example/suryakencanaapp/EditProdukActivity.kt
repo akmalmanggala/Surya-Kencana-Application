@@ -71,6 +71,10 @@ class EditProdukActivity : AppCompatActivity() {
         val rawPrice = intent.getStringExtra("PRICE") ?: "0"
         val cleanPrice = rawPrice.substringBefore(".")
         binding.etPrice.setText(cleanPrice)
+        
+        // Load hide_price state (convert Int to Boolean)
+        val hidePrice = intent.getIntExtra("HIDE_PRICE", 0)
+        binding.cbHidePrice.isChecked = (hidePrice == 1)
 
         val oldImageUrl = intent.getStringExtra("IMAGE_URL")
         if (!oldImageUrl.isNullOrEmpty()) {
@@ -120,6 +124,7 @@ class EditProdukActivity : AppCompatActivity() {
     // -----------------------------------
 
     private fun setupListeners() {
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnUploadImage.setOnClickListener { openGallery() }
         binding.btnSave.setOnClickListener { updateProduct() }
@@ -196,6 +201,11 @@ class EditProdukActivity : AppCompatActivity() {
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqPrice = priceClean.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqDesc = desc.toRequestBody("text/plain".toMediaTypeOrNull())
+                
+                // Hide Price
+                val hidePrice = if (binding.cbHidePrice.isChecked) "1" else "0"
+                val reqHidePrice = hidePrice.toRequestBody("text/plain".toMediaTypeOrNull())
+                
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
                 // 1. Gambar Utama
@@ -227,6 +237,7 @@ class EditProdukActivity : AppCompatActivity() {
                     reqName,
                     reqPrice,
                     reqDesc,
+                    reqHidePrice, // TAMBAHAN: hide_price
                     bodyImage,
                     if (newImagesParts.isNotEmpty()) newImagesParts else null,
                     if (deletedParts.isNotEmpty()) deletedParts else null,

@@ -142,7 +142,8 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
                     Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error: ${e.message}")
+                Log.e("API_ERROR", "Error: ${e.message}", e)
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
                 // Cek null safety (_binding) karena bisa jadi user sudah keluar layar saat loading selesai
                 _binding?.swipeRefresh?.isRefreshing = false

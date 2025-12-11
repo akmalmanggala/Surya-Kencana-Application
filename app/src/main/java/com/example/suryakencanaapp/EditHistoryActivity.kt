@@ -107,6 +107,7 @@ class EditHistoryActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnUploadImage.setOnClickListener { mainImageLauncher.launch("image/*") }
         binding.btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }

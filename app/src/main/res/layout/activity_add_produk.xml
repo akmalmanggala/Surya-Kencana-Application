@@ -15,15 +15,34 @@
         android:fitsSystemWindows="true"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvPageTitle"
-            android:text="Tambah Produk Baru"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_dark"
+        <!-- Header with Back Button -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="#000000"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                android:contentDescription="Back"/>
+
+            <TextView
+                android:id="@+id/tvPageTitle"
+                android:text="Tambah Produk Baru"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"/>
+        </RelativeLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -52,6 +71,55 @@
                 android:inputType="number"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Checkbox Sembunyikan Harga -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFF9E6"
+            app:cardElevation="0dp"
+            app:strokeColor="#FFD54F"
+            app:strokeWidth="1dp"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <CheckBox
+                    android:id="@+id/cbHidePrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/brown_primary"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sembunyikan harga"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Harga tidak akan ditampilkan di halaman publik"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
@@ -69,7 +137,6 @@
 
         <TextView
             android:text="Gambar Produk *"
-            android:textColor="@color/text_dark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"/>
@@ -122,7 +189,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Gambar Album (Opsional)"
-            android:textColor="@color/text_dark"
             android:layout_marginBottom="8dp"/>
 
         <LinearLayout

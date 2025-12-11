@@ -53,6 +53,7 @@ class AddHistoryActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnSave.setOnClickListener { uploadHistory() }
         binding.btnUploadImage.setOnClickListener { mainImageLauncher.launch("image/*") }

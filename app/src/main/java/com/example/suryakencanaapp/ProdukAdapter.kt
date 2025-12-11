@@ -36,6 +36,13 @@ class ProdukAdapter(
         val priceDouble = product.price.toDoubleOrNull() ?: 0.0
         val formatRupiah = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
         holder.binding.tvProductPrice.text = formatRupiah.format(priceDouble)
+        
+        // 1a. BADGE HIDE PRICE
+        if (product.hidePrice == 1) {
+            holder.binding.tvHidePriceBadge.visibility = View.VISIBLE
+        } else {
+            holder.binding.tvHidePriceBadge.visibility = View.GONE
+        }
 
         // 2. GAMBAR (Langsung pakai imageUrl dari API)
         if (!product.imageUrl.isNullOrEmpty()) {
@@ -60,6 +67,7 @@ class ProdukAdapter(
             intent.putExtra("PRICE", product.price) // Kirim harga mentah (string)
             intent.putExtra("DESC", product.description)
             intent.putExtra("IMAGE_URL", product.imageUrl)
+            intent.putExtra("HIDE_PRICE", product.hidePrice) // TAMBAHAN: hide_price
 
             holder.itemView.context.startActivity(intent)
         }

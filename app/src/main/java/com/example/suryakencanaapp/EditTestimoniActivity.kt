@@ -36,6 +36,7 @@ class EditTestimoniActivity : AppCompatActivity() {
 
         // 4. Action Tombol
         binding.btnSave.setOnClickListener { updateData() }
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
     }
 

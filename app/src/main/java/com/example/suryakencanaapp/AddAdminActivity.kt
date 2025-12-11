@@ -18,6 +18,7 @@ class AddAdminActivity : AppCompatActivity() {
         binding = ActivityAddAdminBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
 
         binding.btnSave.setOnClickListener {

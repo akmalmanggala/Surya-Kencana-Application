@@ -60,6 +60,7 @@ class EditClientActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnUploadLogo.setOnClickListener { openGallery() }
         binding.btnSave.setOnClickListener { updateClient() }

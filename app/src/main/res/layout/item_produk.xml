@@ -99,6 +99,22 @@
                 android:textStyle="bold"
                 android:textColor="@color/brown_primary"/>
 
+            <!-- Badge Hide Price -->
+            <TextView
+                android:id="@+id/tvHidePriceBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="🔒 Harga disembunyikan"
+                android:textSize="10sp"
+                android:textColor="#F57C00"
+                android:background="#FFF3E0"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:visibility="gone"/>
+
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

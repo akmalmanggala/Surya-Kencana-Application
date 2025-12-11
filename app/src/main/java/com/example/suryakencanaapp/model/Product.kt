@@ -10,6 +10,9 @@ data class Product(
     val description: String?,
     val price: String,
 
+    @SerializedName("hide_price")
+    val hidePrice: Int = 0, // 0 = false, 1 = true (dari API)
+
     @SerializedName("image_url")
     val imageUrl: String?, // URL Lengkap Gambar Utama
 

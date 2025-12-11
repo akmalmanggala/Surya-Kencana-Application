@@ -60,6 +60,7 @@ class AddProductActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnSave.setOnClickListener { uploadProduct() }
         // Listener Gambar UTAMA (Single)
@@ -137,6 +138,10 @@ class AddProductActivity : AppCompatActivity() {
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqPrice = priceClean.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqDesc = desc.toRequestBody("text/plain".toMediaTypeOrNull())
+                
+                // Hide Price (0 = false, 1 = true)
+                val hidePrice = if (binding.cbHidePrice.isChecked) "1" else "0"
+                val reqHidePrice = hidePrice.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 // 2. SIAPKAN GAMBAR UTAMA (selectedFile)
                 // Deteksi MimeType (PNG/JPG)
@@ -167,6 +172,7 @@ class AddProductActivity : AppCompatActivity() {
                     reqName,
                     reqPrice,
                     reqDesc,
+                    reqHidePrice, // TAMBAHAN: hide_price
                     bodyMainImage,
                     if (albumParts.isEmpty()) null else albumParts // Kirim null jika tidak ada album
                 )

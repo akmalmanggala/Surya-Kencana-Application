@@ -25,7 +25,7 @@ object ApiClient {
 
         val retrofit = Retrofit.Builder()
             // SAYA HAPUS 'api/' DI UJUNGNYA AGAR AMAN DARI ERROR 404
-            .baseUrl("http://192.168.109.17:8000/api/")
+            .baseUrl("https://becompro.fizualstd.my.id/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(mOkHttpClient)
             .build()

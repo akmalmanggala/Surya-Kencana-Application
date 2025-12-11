@@ -57,6 +57,7 @@ interface ApiService {
         @Part("name") name: RequestBody,
         @Part("price") price: RequestBody,
         @Part("description") description: RequestBody,
+        @Part("hide_price") hidePrice: RequestBody, // TAMBAHAN: hide_price
         @Part file: MultipartBody.Part,
         @Part albumImages: List<MultipartBody.Part>?
     ): Response<Any>
@@ -69,6 +70,7 @@ interface ApiService {
         @Part("name") name: RequestBody,
         @Part("price") price: RequestBody,
         @Part("description") description: RequestBody,
+        @Part("hide_price") hidePrice: RequestBody, // TAMBAHAN: hide_price
         @Part file: MultipartBody.Part?, // Gambar Utama (Boleh Null)
         @Part newImages: List<MultipartBody.Part>?, // Tambah Album Baru
         @Part deletedImages: List<MultipartBody.Part>?, // Hapus Album Lama

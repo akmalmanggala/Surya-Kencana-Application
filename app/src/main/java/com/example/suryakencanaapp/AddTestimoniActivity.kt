@@ -32,6 +32,7 @@ class AddTestimoniActivity : AppCompatActivity() {
         }
 
         // 4. Tombol Batal
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener {
             finish() // Kembali ke halaman sebelumnya
         }
