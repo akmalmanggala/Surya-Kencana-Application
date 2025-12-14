@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -32,10 +33,12 @@ class EditProdukActivity : AppCompatActivity() {
 
     private var productId: Int = 0
     private var selectedFile: File? = null
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Kita Reuse Layout Add Produk karena isinya sama persis
         binding = ActivityAddProdukBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -69,13 +72,23 @@ class EditProdukActivity : AppCompatActivity() {
         binding.etDesc.setText(intent.getStringExtra("DESC"))
 
         val rawPrice = intent.getStringExtra("PRICE") ?: "0"
-        val cleanPrice = rawPrice.substringBefore(".")
+        val cleanPrice = rawPrice.substringBefore(".") // Hilangkan desimal .00
         binding.etPrice.setText(cleanPrice)
-        
-        // Load hide_price state (convert Int to Boolean)
-        val hidePrice = intent.getIntExtra("HIDE_PRICE", 0)
-        binding.cbHidePrice.isChecked = (hidePrice == 1)
 
+        // --- LOGIKA STATUS HIDE ---
+        val hidePriceStatus = intent.getIntExtra("HIDE_PRICE", 0)
+        val isHidden = (hidePriceStatus == 1)
+
+        binding.cbHidePrice.isChecked = isHidden
+
+        // Atur UI sesuai status
+        if (isHidden) {
+            binding.tvHiddenInfo.visibility = View.VISIBLE
+        } else {
+            binding.tvHiddenInfo.visibility = View.GONE
+        }
+
+        // Load Gambar Lama
         val oldImageUrl = intent.getStringExtra("IMAGE_URL")
         if (!oldImageUrl.isNullOrEmpty()) {
             binding.imgUploadIcon.visibility = View.GONE
@@ -99,29 +112,14 @@ class EditProdukActivity : AppCompatActivity() {
 
                     if (!data.images.isNullOrEmpty() && !data.imageUrls.isNullOrEmpty()) {
                         binding.rvAlbumPreview.visibility = View.VISIBLE
-
-                        // 1. Simpan PATH (relatif) untuk keperluan DELETE nanti
-                        // Contoh isi: "products/foto1.jpg"
-                        data.images.forEach { path ->
-                            originalImageUrls.add(path)
-                        }
-
-                        // 2. Simpan URL (lengkap) untuk TAMPILAN di HP (CDN)
-                        // Contoh isi: "https://pub-r2..../products/foto1.jpg"
-                        // Ini yang bikin gambar MUNCUL di HP Asli
-                        data.imageUrls.forEach { url ->
-                            previewAlbumUris.add(Uri.parse(url))
-                        }
-
+                        data.images.forEach { path -> originalImageUrls.add(path) }
+                        data.imageUrls.forEach { url -> previewAlbumUris.add(Uri.parse(url)) }
                         albumAdapter.notifyDataSetChanged()
                     }
                 }
-            } catch (e: Exception) {
-                // Error handling silent
-            }
+            } catch (e: Exception) { }
         }
     }
-    // -----------------------------------
 
     private fun setupListeners() {
         binding.btnBack.setOnClickListener { finish() }
@@ -129,6 +127,15 @@ class EditProdukActivity : AppCompatActivity() {
         binding.btnUploadImage.setOnClickListener { openGallery() }
         binding.btnSave.setOnClickListener { updateProduct() }
         binding.btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
+
+        // --- LISTENER CHECKBOX ---
+        binding.cbHidePrice.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                binding.tvHiddenInfo.visibility = View.VISIBLE
+            } else {
+                binding.tvHiddenInfo.visibility = View.GONE
+            }
+        }
     }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -161,38 +168,49 @@ class EditProdukActivity : AppCompatActivity() {
 
     private fun handleRemoveAlbumItem(position: Int) {
         val totalOldImages = originalImageUrls.size
-
         if (position < totalOldImages) {
-            // Hapus gambar lama
             deletedImagePaths.add(originalImageUrls[position])
             originalImageUrls.removeAt(position)
         } else {
-            // Hapus gambar baru
             val idx = position - totalOldImages
             if (idx >= 0 && idx < selectedNewAlbumFiles.size) {
                 selectedNewAlbumFiles.removeAt(idx)
             }
         }
-
         previewAlbumUris.removeAt(position)
         albumAdapter.notifyItemRemoved(position)
         albumAdapter.notifyItemRangeChanged(position, previewAlbumUris.size)
         if (previewAlbumUris.isEmpty()) binding.rvAlbumPreview.visibility = View.GONE
     }
 
+    // --- PERBAIKAN UTAMA DI SINI ---
     private fun updateProduct() {
         val name = binding.etName.text.toString().trim()
         val priceRaw = binding.etPrice.text.toString().trim()
         val desc = binding.etDesc.text.toString().trim()
+        val isHidden = binding.cbHidePrice.isChecked
 
-        if (name.isEmpty() || priceRaw.isEmpty()) {
-            Toast.makeText(this, "Data wajib diisi", Toast.LENGTH_SHORT).show()
+        // 1. Validasi Umum
+        if (name.isEmpty() || desc.isEmpty()) {
+            Toast.makeText(this, "Nama dan Deskripsi wajib diisi", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 2. Validasi Harga (Hanya wajib jika TIDAK disembunyikan)
+        if (!isHidden && priceRaw.isEmpty()) {
+            Toast.makeText(this, "Harga wajib diisi (kecuali disembunyikan)", Toast.LENGTH_SHORT).show()
             return
         }
 
         val prefs = getSharedPreferences("AppSession", MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
-        val priceClean = priceRaw.replace(".", "").replace(",", "")
+
+        // 3. Penanganan Nilai Harga (Default "0" jika kosong/hidden)
+        val priceClean = if (priceRaw.isNotEmpty()) {
+            priceRaw.replace(".", "").replace(",", "")
+        } else {
+            "0"
+        }
 
         lifecycleScope.launch {
             try {
@@ -201,21 +219,21 @@ class EditProdukActivity : AppCompatActivity() {
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqPrice = priceClean.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqDesc = desc.toRequestBody("text/plain".toMediaTypeOrNull())
-                
-                // Hide Price
-                val hidePrice = if (binding.cbHidePrice.isChecked) "1" else "0"
-                val reqHidePrice = hidePrice.toRequestBody("text/plain".toMediaTypeOrNull())
-                
+
+                // Status Hide Price
+                val hidePriceStr = if (isHidden) "1" else "0"
+                val reqHidePrice = hidePriceStr.toRequestBody("text/plain".toMediaTypeOrNull())
+
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // 1. Gambar Utama
+                // Gambar Utama
                 var bodyImage: MultipartBody.Part? = null
                 if (selectedFile != null) {
                     val reqFile = selectedFile!!.asRequestBody("image/*".toMediaTypeOrNull())
                     bodyImage = MultipartBody.Part.createFormData("image_path", selectedFile!!.name, reqFile)
                 }
 
-                // 2. Album Baru
+                // Album Baru
                 val newImagesParts = mutableListOf<MultipartBody.Part>()
                 for (file in selectedNewAlbumFiles) {
                     val reqFile = file.asRequestBody("image/*".toMediaTypeOrNull())
@@ -223,7 +241,7 @@ class EditProdukActivity : AppCompatActivity() {
                     newImagesParts.add(part)
                 }
 
-                // 3. Album Dihapus
+                // Album Hapus
                 val deletedParts = mutableListOf<MultipartBody.Part>()
                 for (path in deletedImagePaths) {
                     val body = path.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -237,7 +255,7 @@ class EditProdukActivity : AppCompatActivity() {
                     reqName,
                     reqPrice,
                     reqDesc,
-                    reqHidePrice, // TAMBAHAN: hide_price
+                    reqHidePrice,
                     bodyImage,
                     if (newImagesParts.isNotEmpty()) newImagesParts else null,
                     if (deletedParts.isNotEmpty()) deletedParts else null,
@@ -262,11 +280,19 @@ class EditProdukActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
             binding.btnSave.isEnabled = false
-            binding.btnSave.text = "Updating..."
         } else {
+            loadingDialog?.dismiss()
             binding.btnSave.isEnabled = true
-            binding.btnSave.text = "Simpan Perubahan"
         }
     }
 }

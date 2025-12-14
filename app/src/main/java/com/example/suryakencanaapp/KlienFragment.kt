@@ -26,6 +26,7 @@ class KlienFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var clientAdapter: ClientAdapter
     private var allClientList: List<Client> = listOf()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +68,23 @@ class KlienFragment : Fragment() {
         fetchClients()
     }
 
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(requireContext())
+                // Menggunakan layout_loading_dialog.xml yang sudah Anda buat sebelumnya
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa cancel sembarangan
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
+
     private fun setupSearchListener() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -84,10 +102,9 @@ class KlienFragment : Fragment() {
         val filteredList = if (keyword.isEmpty()) {
             allClientList
         } else {
-            // PERBAIKAN: Tambahkan `?` dan `== true` untuk menangani data null
+            // PERBAIKAN: Hapus filter institution, Cukup filter Nama Klien
             allClientList.filter {
-                (it.clientName?.contains(keyword, ignoreCase = true) == true) ||
-                        (it.institution?.contains(keyword, ignoreCase = true) == true)
+                it.clientName?.contains(keyword, ignoreCase = true) == true
             }
         }
         updateListUI(filteredList, keyword)
@@ -113,27 +130,30 @@ class KlienFragment : Fragment() {
     }
 
     private fun fetchClients() {
-        binding.swipeRefresh.isRefreshing = true
+        // Gunakan Safe Call (?)
+        _binding?.swipeRefresh?.isRefreshing = true
 
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getClients(null)
 
-                if (response.isSuccessful && response.body() != null) {
+                // Cek _binding != null agar tidak crash saat update UI
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
-
-                    // Simpan ke Master List
                     allClientList = listData.sortedByDescending { it.id }
 
-                    val currentKeyword = binding.etSearch.text.toString().trim()
+                    val currentKeyword = _binding?.etSearch?.text.toString().trim()
                     filterData(currentKeyword)
                 } else {
-                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    if (_binding != null) {
+                        Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("CLIENT_API", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                // INI YANG PALING PENTING: Gunakan _binding?
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
@@ -156,6 +176,7 @@ class KlienFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
+                setLoading(true)
                 val response = ApiClient.instance.deleteClient("Bearer $token", id)
 
                 if (response.isSuccessful) {
@@ -166,6 +187,8 @@ class KlienFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
             }
         }
     }

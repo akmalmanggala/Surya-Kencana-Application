@@ -29,6 +29,7 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
 
     private lateinit var productAdapter: ProdukAdapter
     private var allProductList: List<Product> = listOf()
+    private var loadingDialog: AlertDialog? = null
 
     // 2. Gunakan onCreateView untuk inflate layout
     override fun onCreateView(
@@ -83,6 +84,23 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
         fetchProducts()
     }
 
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(requireContext())
+                // Menggunakan layout_loading_dialog.xml yang sudah Anda buat sebelumnya
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa cancel sembarangan
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
+
     private fun setupSearchListener() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -127,13 +145,13 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
     }
 
     private fun fetchProducts() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getProducts(null)
 
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     allProductList = response.body()!!.sortedByDescending { it.id }
 
                     val currentKeyword = binding.etSearch.text.toString().trim()
@@ -143,9 +161,7 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
                 }
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error: ${e.message}", e)
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
-                // Cek null safety (_binding) karena bisa jadi user sudah keluar layar saat loading selesai
                 _binding?.swipeRefresh?.isRefreshing = false
             }
         }
@@ -166,6 +182,7 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
 
         lifecycleScope.launch {
             try {
+                setLoading(true)
                 val response = ApiClient.instance.deleteProduct("Bearer $token", id)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Produk Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
@@ -176,6 +193,8 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
             }
         }
     }

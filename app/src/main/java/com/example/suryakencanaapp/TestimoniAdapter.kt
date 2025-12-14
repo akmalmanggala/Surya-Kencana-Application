@@ -8,10 +8,9 @@ import com.example.suryakencanaapp.EditTestimoniActivity
 import com.example.suryakencanaapp.databinding.ItemTestimoniBinding
 import com.example.suryakencanaapp.model.Testimoni
 
-// LIHAT PERUBAHAN DI SINI (Constructor tambah parameter onDeleteClick)
 class TestimoniAdapter(
     private var listTestimoni: List<Testimoni>,
-    private val onDeleteClick: (Testimoni) -> Unit // <--- Callback fungsi
+    private val onDeleteClick: (Testimoni) -> Unit
 ) : RecyclerView.Adapter<TestimoniAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemTestimoniBinding) : RecyclerView.ViewHolder(binding.root)
@@ -24,12 +23,13 @@ class TestimoniAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = listTestimoni[position]
 
-        // ... kode set text & inisial (sama seperti sebelumnya) ...
+        // Set Data Teks
         holder.binding.tvName.text = data.clientName ?: "Tanpa Nama"
         holder.binding.tvCompany.text = data.institution ?: "-"
         holder.binding.tvContent.text = data.feedback ?: ""
         holder.binding.tvDate.text = data.date ?: ""
 
+        // Set Inisial
         val name = data.clientName?.trim()
         if (!name.isNullOrEmpty()) {
             holder.binding.tvInitial.text = name[0].toString().uppercase()
@@ -37,8 +37,8 @@ class TestimoniAdapter(
             holder.binding.tvInitial.text = "?"
         }
 
-        // Tombol Edit (Tetap pakai Intent)
-        holder.binding.btnEdit.setOnClickListener {
+        // --- LOGIKA EDIT (Disimpan dalam variabel agar bisa dipakai 2x) ---
+        val performEdit = {
             val intent = Intent(holder.itemView.context, EditTestimoniActivity::class.java)
             intent.putExtra("ID", data.id)
             intent.putExtra("NAME", data.clientName)
@@ -48,9 +48,15 @@ class TestimoniAdapter(
             holder.itemView.context.startActivity(intent)
         }
 
-        // Tombol Hapus (PANGGIL CALLBACK)
+        // 1. Klik Tombol Edit (Pensil) -> Edit
+        holder.binding.btnEdit.setOnClickListener { performEdit() }
+
+        // 2. Klik Kartu Utama -> Edit (REQ ANDA)
+        holder.binding.root.setOnClickListener { performEdit() }
+
+        // 3. Klik Tombol Hapus -> Hapus
         holder.binding.btnDelete.setOnClickListener {
-            onDeleteClick(data) // <--- Lapor ke Fragment: "Eh, data ini mau dihapus!"
+            onDeleteClick(data)
         }
     }
 

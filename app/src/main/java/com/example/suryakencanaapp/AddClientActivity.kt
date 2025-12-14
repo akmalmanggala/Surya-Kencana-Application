@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -22,6 +23,7 @@ class AddClientActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddEditClientBinding
     private var selectedFile: File? = null
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,11 +88,10 @@ class AddClientActivity : AppCompatActivity() {
     // --- LOGIC UPLOAD KE SERVER ---
     private fun uploadClient() {
         val name = binding.etClientName.text.toString().trim()
-        val institution = binding.etInstitution.text.toString().trim()
 
         // 1. VALIDASI
-        if (name.isEmpty() || institution.isEmpty() || selectedFile == null) {
-            Toast.makeText(this, "Nama, Institusi, dan Logo wajib diisi!", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty() || selectedFile == null) {
+            Toast.makeText(this, "Nama dan Logo wajib diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -111,7 +112,6 @@ class AddClientActivity : AppCompatActivity() {
 
                 // 3. SIAPKAN DATA TEXT
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
-                val reqInst = institution.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 // 4. SIAPKAN FILE GAMBAR
                 // Nama part 'logo' atau 'image' harus sesuai dengan Controller Laravel ($request->file('logo'))
@@ -120,7 +120,7 @@ class AddClientActivity : AppCompatActivity() {
                 val bodyImage = MultipartBody.Part.createFormData("logo_path", selectedFile!!.name, requestFile)
 
                 // 5. KIRIM (Pastikan addClient dibuat di ApiService nanti)
-                val response = ApiClient.instance.addClient(authHeader, reqName, reqInst, bodyImage)
+                val response = ApiClient.instance.addClient(authHeader, reqName, bodyImage)
 
                 if (response.isSuccessful) {
                     Toast.makeText(this@AddClientActivity, "Klien Berhasil Ditambahkan!", Toast.LENGTH_LONG).show()
@@ -141,11 +141,19 @@ class AddClientActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
             binding.btnSave.isEnabled = false
-            binding.btnSave.text = "Uploading..."
         } else {
+            loadingDialog?.dismiss()
             binding.btnSave.isEnabled = true
-            binding.btnSave.text = "Tambah Klien"
         }
     }
 }

@@ -55,20 +55,38 @@ class LoginActivity : AppCompatActivity() {
                 val request = LoginRequest(username, pass)
                 val response = ApiClient.instance.login(request)
 
+                // Jika response sukses (HTTP 200-299)
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
                     Toast.makeText(this@LoginActivity, "Halo, ${body.adminData.username}", Toast.LENGTH_LONG).show()
 
-                    saveSession(body.token, body.role, body.adminData.username)
+                    saveSession(body.token, body.adminData.role, body.adminData.username)
 
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()
                 } else {
-                    Toast.makeText(this@LoginActivity, "Username atau Password salah", Toast.LENGTH_SHORT).show()
+                    // Jika response TIDAK sukses (misal: 401, 404, 500)
+                    // Kita akan bedakan pesannya di sini
+                    when (response.code()) {
+                        401, 422 -> {
+                            // 401 (Unauthorized) atau 422 (Unprocessable Entity) -> Umumnya karena data salah
+                            Toast.makeText(this@LoginActivity, "Username atau Password salah", Toast.LENGTH_SHORT).show()
+                        }
+                        500 -> {
+                            // 500 (Internal Server Error) -> Server mengalami masalah
+                            Toast.makeText(this@LoginActivity, "Terjadi masalah pada server", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            // Error lainnya (misal: 404 Not Found)
+                            Toast.makeText(this@LoginActivity, "Error tidak diketahui: ${response.message()}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // Blok ini dieksekusi jika ada masalah koneksi (misal: tidak ada internet, server mati)
+                Toast.makeText(this@LoginActivity, "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.", Toast.LENGTH_LONG).show()
             } finally {
+                // Blok ini akan selalu dijalankan, baik sukses maupun gagal
                 binding.progressBar.visibility = View.GONE
                 binding.btnLogin.text = "LOGIN"
                 binding.btnLogin.isClickable = true

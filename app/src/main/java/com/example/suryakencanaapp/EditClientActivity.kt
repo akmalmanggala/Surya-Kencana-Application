@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -23,6 +24,7 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddEditClientBinding
     private var clientId: Int = 0
     private var selectedFile: File? = null
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +45,6 @@ class EditClientActivity : AppCompatActivity() {
     private fun loadDataFromIntent() {
         clientId = intent.getIntExtra("ID", 0)
         binding.etClientName.setText(intent.getStringExtra("NAME"))
-        binding.etInstitution.setText(intent.getStringExtra("INSTITUTION"))
 
         val oldLogoUrl = intent.getStringExtra("LOGO_URL")
         if (!oldLogoUrl.isNullOrEmpty()) {
@@ -98,10 +99,9 @@ class EditClientActivity : AppCompatActivity() {
     // --- LOGIC UPDATE ---
     private fun updateClient() {
         val name = binding.etClientName.text.toString().trim()
-        val institution = binding.etInstitution.text.toString().trim()
 
-        if (name.isEmpty() || institution.isEmpty()) {
-            Toast.makeText(this, "Nama dan Institusi wajib diisi", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Nama wajib diisi", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -115,7 +115,6 @@ class EditClientActivity : AppCompatActivity() {
 
                 // 1. Siapkan Data Teks
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
-                val reqInst = institution.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 // TRIK LARAVEL: Kirim field "_method" bernilai "PUT"
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
@@ -135,7 +134,6 @@ class EditClientActivity : AppCompatActivity() {
                     "Bearer $token",
                     clientId,
                     reqName,
-                    reqInst,
                     bodyImage, // Bisa null
                     reqMethod
                 )
@@ -157,11 +155,19 @@ class EditClientActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
             binding.btnSave.isEnabled = false
-            binding.btnSave.text = "Updating..."
         } else {
+            loadingDialog?.dismiss()
             binding.btnSave.isEnabled = true
-            binding.btnSave.text = "Simpan Perubahan"
         }
     }
 }

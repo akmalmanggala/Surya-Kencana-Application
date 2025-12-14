@@ -134,10 +134,13 @@ class DashboardFragment : Fragment() {
     }
 
     private fun fetchDashboardData() {
+
+        _binding?.swipeRefresh?.isRefreshing = true
+
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getDashboardData()
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
                     // Simpan ke cache agar tidak perlu download lagi nanti
@@ -149,7 +152,7 @@ class DashboardFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e("DASHBOARD", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }

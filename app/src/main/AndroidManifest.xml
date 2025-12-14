@@ -24,6 +24,9 @@
         </intent-filter>
         </activity>
         <activity
+            android:name=".EditAdminActivity"
+            android:exported="false" />
+        <activity
             android:name=".EditProdukActivity"
             android:exported="false" />
         <activity

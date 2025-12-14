@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -27,6 +28,7 @@ class AddHistoryActivity : AppCompatActivity() {
     private var selectedMainFile: File? = null
     private val selectedAlbumFiles = mutableListOf<File>()
     private val selectedAlbumUris = mutableListOf<Uri>()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,11 +165,19 @@ class AddHistoryActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
             binding.btnSave.isEnabled = false
-            binding.btnSave.text = "Uploading..."
         } else {
+            loadingDialog?.dismiss()
             binding.btnSave.isEnabled = true
-            binding.btnSave.text = "Tambah Riwayat"
         }
     }
 }

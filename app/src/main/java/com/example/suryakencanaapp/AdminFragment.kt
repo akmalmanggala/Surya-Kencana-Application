@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -26,6 +27,7 @@ class AdminFragment : Fragment() {
 
     private lateinit var adminAdapter: AdminAdapter
     private var allAdminList: List<Admin> = listOf()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +43,17 @@ class AdminFragment : Fragment() {
 
         binding.rvAdmin.layoutManager = LinearLayoutManager(context)
 
-        adminAdapter = AdminAdapter(listOf()) { }
+        // --- INIT ADAPTER (PERBAIKAN SINTAKS) ---
+        adminAdapter = AdminAdapter(
+            listOf(),
+            onDeleteClick = { admin -> showDeleteConfirmation(admin) },
+            onEditClick = { admin ->
+                val intent = Intent(context, EditAdminActivity::class.java)
+                intent.putExtra("ID", admin.id)
+                intent.putExtra("USERNAME", admin.username)
+                startActivity(intent)
+            }
+        )
         binding.rvAdmin.adapter = adminAdapter
 
         binding.swipeRefresh.setOnRefreshListener {
@@ -65,6 +77,23 @@ class AdminFragment : Fragment() {
         fetchAdmins()
     }
 
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(requireContext())
+                // Menggunakan layout_loading_dialog.xml yang sudah Anda buat sebelumnya
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa cancel sembarangan
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
+
     private fun setupSearchListener() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -77,12 +106,10 @@ class AdminFragment : Fragment() {
         })
     }
 
-    // 3. Logika Filter Lokal
     private fun filterData(keyword: String) {
         val filteredList = if (keyword.isEmpty()) {
             allAdminList
         } else {
-            // Filter berdasarkan Username
             allAdminList.filter {
                 it.username.contains(keyword, ignoreCase = true)
             }
@@ -96,12 +123,7 @@ class AdminFragment : Fragment() {
         if (list.isEmpty()) {
             binding.rvAdmin.visibility = View.GONE
             binding.tvEmptyState.visibility = View.VISIBLE
-
-            if (keyword.isNotEmpty()) {
-                binding.tvEmptyState.text = "Admin tidak ditemukan"
-            } else {
-                binding.tvEmptyState.text = "Belum ada Admin"
-            }
+            binding.tvEmptyState.text = if (keyword.isNotEmpty()) "Admin tidak ditemukan" else "Belum ada Admin"
         } else {
             binding.rvAdmin.visibility = View.VISIBLE
             binding.tvEmptyState.visibility = View.GONE
@@ -109,15 +131,16 @@ class AdminFragment : Fragment() {
     }
 
     private fun fetchAdmins() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
+                // Ambil semua data (null) lalu filter lokal
                 val response = ApiClient.instance.getAdmins("Bearer $token", null)
 
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     allAdminList = response.body()!!.sortedByDescending { it.id }
 
                     val currentKeyword = binding.etSearch.text.toString().trim()
@@ -128,9 +151,40 @@ class AdminFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e("ADMIN_API", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                // Gunakan safe call karena view mungkin sudah hancur
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
 
+    private fun showDeleteConfirmation(data: Admin) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Admin")
+            .setMessage("Yakin ingin menghapus ${data.username}?")
+            .setPositiveButton("Hapus") { _, _ -> deleteAdminApi(data.id) }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun deleteAdminApi(id: Int) {
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "") ?: return
+
+        lifecycleScope.launch {
+            try {
+                setLoading(true)
+                val response = ApiClient.instance.deleteAdmin("Bearer $token", id)
+                if (response.isSuccessful) {
+                    Toast.makeText(context, "Admin Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
+                    fetchAdmins()
+                } else {
+                    Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
 }

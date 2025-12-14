@@ -30,6 +30,7 @@ class HeroFragment : Fragment() {
     private var _binding: FragmentHeroBinding? = null
     private val binding get() = _binding!!
     private lateinit var heroImageAdapter: HeroAdapter
+    private var loadingDialog: android.app.AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,12 +68,32 @@ class HeroFragment : Fragment() {
         binding.swipeRefresh.post { fetchHeroData() }
     }
 
+    // --- HELPER LOADING ---
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = android.app.AlertDialog.Builder(requireContext())
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa back
+                loadingDialog = builder.create()
+                // Agar background transparan (hanya card yang terlihat)
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSaveHero.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSaveHero.isEnabled = true
+        }
+    }
+
     private fun fetchHeroData() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHero()
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val list = response.body()!!
                     if (list.isNotEmpty()) {
                         val data = list[0]
@@ -92,31 +113,20 @@ class HeroFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e("HERO_API", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
 
-    // --- 1. SIMPAN PERUBAHAN TEKS ---
     private fun saveChanges() {
-        updateHeroApi(
-            newImageFile = null,
-            deletedPath = null,
-            actionType = "save_text" // Tipe Aksi: Simpan Teks
-        )
+        updateHeroApi(null, null, "save_text")
     }
 
-    // --- 2. TAMBAH GAMBAR ---
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             val file = FileUtils.getFileFromUri(requireContext(), uri)
             if (file != null) {
-                Toast.makeText(context, "Mengupload gambar...", Toast.LENGTH_SHORT).show()
-                updateHeroApi(
-                    newImageFile = file,
-                    deletedPath = null,
-                    actionType = "upload_image" // Tipe Aksi: Upload Gambar
-                )
+                updateHeroApi(file, null, "upload_image")
             }
         }
     }
@@ -125,33 +135,25 @@ class HeroFragment : Fragment() {
         galleryLauncher.launch("image/*")
     }
 
-    // --- 3. HAPUS GAMBAR ---
     private fun showDeleteConfirmation(path: String) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Gambar")
             .setMessage("Yakin ingin menghapus gambar ini dari slider?")
             .setPositiveButton("Hapus") { _, _ ->
-                Toast.makeText(context, "Menghapus gambar...", Toast.LENGTH_SHORT).show()
-                updateHeroApi(
-                    newImageFile = null,
-                    deletedPath = path,
-                    actionType = "delete_image" // Tipe Aksi: Hapus Gambar
-                )
+                updateHeroApi(null, path, "delete_image")
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    // --- UPDATE HERO API DENGAN PESAN DINAMIS ---
-    // Tambahkan parameter 'actionType'
     private fun updateHeroApi(newImageFile: File?, deletedPath: String?, actionType: String) {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
-                binding.btnSaveHero.isEnabled = false
-                binding.btnSaveHero.text = "Updating..."
+                // 1. Tampilkan Overlay Loading
+                setLoading(true)
 
                 val location = createPart(binding.etLocation.text.toString())
                 val title = createPart(binding.etHeroTitle.text.toString())
@@ -161,7 +163,6 @@ class HeroFragment : Fragment() {
                 val exp = createPart(binding.etStatExp.text.toString())
                 val trust = createPart(binding.etStatTrust.text.toString())
 
-                // 2. Siapkan Gambar Baru
                 val newImagesList = if (newImageFile != null) {
                     val reqFile = newImageFile.asRequestBody("image/*".toMediaTypeOrNull())
                     listOf(MultipartBody.Part.createFormData("backgrounds[]", newImageFile.name, reqFile))
@@ -169,7 +170,6 @@ class HeroFragment : Fragment() {
                     null
                 }
 
-                // 3. Siapkan Path Hapus
                 val deletedImagesList = if (deletedPath != null) {
                     val pathBody = createPart(deletedPath)
                     listOf(MultipartBody.Part.createFormData("deleted_backgrounds[]", null, pathBody))
@@ -185,42 +185,30 @@ class HeroFragment : Fragment() {
                 )
 
                 if (response.isSuccessful) {
-                    // --- LOGIKA PESAN SUKSES ---
                     val successMsg = when (actionType) {
                         "upload_image" -> "Berhasil Menambah Gambar!"
                         "delete_image" -> "Berhasil Menghapus Gambar!"
-                        else -> "Hero Berhasil Diperbarui!" // save_text
+                        else -> "Hero Berhasil Diperbarui!"
                     }
                     Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
-
                     fetchHeroData()
                 } else {
-                    // --- LOGIKA PESAN GAGAL ---
                     val errorMsg = when (actionType) {
                         "upload_image" -> "Gagal Mengupload Gambar!"
                         "delete_image" -> "Gagal Menghapus Gambar!"
                         else -> "Gagal Menyimpan Data!"
                     }
-
-                    // (Opsional) Tampilkan error spesifik dari server di Logcat
                     val serverError = response.errorBody()?.string()
                     Log.e("HERO_UPDATE", "Server Error: $serverError")
-
                     Toast.makeText(context, "$errorMsg (${response.code()})", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
-                // --- LOGIKA PESAN ERROR KONEKSI ---
-                val exMsg = when (actionType) {
-                    "upload_image" -> "Error Upload: ${e.message}"
-                    "delete_image" -> "Error Hapus: ${e.message}"
-                    else -> "Error Simpan: ${e.message}"
-                }
-                Toast.makeText(context, exMsg, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 Log.e("HERO_UPDATE", "Exception: ${e.message}")
             } finally {
-                binding.btnSaveHero.isEnabled = true
-                binding.btnSaveHero.text = "Simpan Perubahan"
+                // 2. Sembunyikan Overlay
+                setLoading(false)
             }
         }
     }

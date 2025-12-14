@@ -6,56 +6,62 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.suryakencanaapp.EditClientActivity
+import com.example.suryakencanaapp.EditClientActivity // Pastikan Activity ini ada
 import com.example.suryakencanaapp.databinding.ItemClientBinding
 import com.example.suryakencanaapp.model.Client
 
-
 class ClientAdapter(
     private var clientList: List<Client>,
-    private val onDeleteClick: (Client) -> Unit // Callback Delete
-) : RecyclerView.Adapter<ClientAdapter.ViewHolder>() {
+    private val onDeleteClick: (Client) -> Unit
+) : RecyclerView.Adapter<ClientAdapter.ClientViewHolder>() {
 
-    class ViewHolder(val binding: ItemClientBinding) : RecyclerView.ViewHolder(binding.root)
+    class ClientViewHolder(val binding: ItemClientBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientViewHolder {
         val binding = ItemClientBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+        return ClientViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val data = clientList[position]
+    override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
+        val client = clientList[position]
 
-        holder.binding.tvClientName.text = data.clientName
-        holder.binding.tvInstitution.text = data.institution ?: "-"
+        with(holder.binding) {
+            tvClientName.text = client.clientName
+            tvInstitution.text = client.institution
 
-        if (!data.logoUrl.isNullOrEmpty()) {
-            Glide.with(holder.itemView.context)
-                .load(data.logoUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // <--- PENTING: Simpan semua versi
-                .into(holder.binding.imgLogo)
-        }
+            if (!client.logoUrl.isNullOrEmpty()) {
+                Glide.with(root.context)
+                    .load(client.logoUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(imgLogo)
+            } else {
+                imgLogo.setImageDrawable(null)
+            }
 
-        // Klik Hapus
-        holder.binding.btnDelete.setOnClickListener {
-            onDeleteClick(data)
-        }
+            // --- LOGIKA EDIT (Reusable) ---
+            val performEdit = {
+                val intent = Intent(root.context, EditClientActivity::class.java)
+                intent.putExtra("ID", client.id)
+                intent.putExtra("NAME", client.clientName)
+                intent.putExtra("LOGO_URL", client.logoUrl)
+                root.context.startActivity(intent)
+            }
 
-        // Klik Edit (Nanti dibuat Activity Edit-nya, sementara Toast dulu atau Intent kosong)
-        holder.binding.btnEdit.setOnClickListener {
-            val intent = Intent(holder.itemView.context, EditClientActivity::class.java)
-            intent.putExtra("ID", data.id)
-            intent.putExtra("NAME", data.clientName)
-            intent.putExtra("INSTITUTION", data.institution)
-            intent.putExtra("LOGO_URL", data.logoUrl) // Kirim URL logo lama buat preview
-            holder.itemView.context.startActivity(intent)
+            // 1. Klik Tombol Edit -> Edit
+            btnEdit.setOnClickListener { performEdit() }
+
+            // 2. Klik Kartu Klien (Root) -> Edit
+            root.setOnClickListener { performEdit() }
+
+            // Klik Tombol Hapus -> Hapus
+            btnDelete.setOnClickListener { onDeleteClick(client) }
         }
     }
 
     override fun getItemCount() = clientList.size
 
     fun updateData(newList: List<Client>) {
-        this.clientList = newList
+        clientList = newList
         notifyDataSetChanged()
     }
 }

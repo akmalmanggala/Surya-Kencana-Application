@@ -22,6 +22,7 @@ class VisiMisiFragment : Fragment() {
     private var _binding: FragmentVisiMisiBinding? = null
     private val binding get() = _binding!!
     private lateinit var misiAdapter: MisiAdapter
+    private var loadingDialog: android.app.AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,45 +57,57 @@ class VisiMisiFragment : Fragment() {
         _binding = null
     }
 
+    // --- HELPER LOADING ---
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = android.app.AlertDialog.Builder(requireContext())
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa back
+                loadingDialog = builder.create()
+                // Agar background transparan (hanya card yang terlihat)
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSaveVisiMisi.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSaveVisiMisi.isEnabled = true
+        }
+    }
+
     private fun fetchData() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getVisiMisi()
 
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
 
                     if (listData.isNotEmpty()) {
                         val data = listData[0]
-
                         binding.etVisi.setText(data.vision)
 
-                        // 2. ISI MISI (PERBAIKAN LOGIKA DI SINI)
                         val rawMission = data.mission ?: ""
-
                         val missionList = try {
-                            // Coba parsing sebagai JSON Array ["A", "B", "C"]
                             val type = object : TypeToken<List<String>>() {}.type
                             Gson().fromJson<List<String>>(rawMission, type).toMutableList()
                         } catch (e: Exception) {
-                            // Jika gagal (mungkin format teks biasa dipisah Enter), coba split manual
                             if (rawMission.contains("\n")) {
                                 rawMission.split("\n").map { it.trim() }.toMutableList()
                             } else {
-                                // Jika tidak ada enter dan bukan JSON, anggap 1 baris string
                                 mutableListOf(rawMission)
                             }
                         }
-
-                        // Update Adapter agar muncul banyak baris
                         misiAdapter.updateData(missionList)
                     }
                 }
             } catch (e: Exception) {
                 Log.e("VISIMISI", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
@@ -105,15 +118,11 @@ class VisiMisiFragment : Fragment() {
             fetchData()
         }
     }
+
     private fun saveData() {
         val visi = binding.etVisi.text.toString().trim()
-
-        // Ambil list misi dari adapter
         val listMisi = misiAdapter.getMisiData()
-
-        // Filter: Hapus baris yang kosong agar tidak nyampah
         val validMisi = listMisi.filter { it.isNotBlank() }
-
         val misiJsonString = Gson().toJson(validMisi)
 
         if (visi.isEmpty()) {
@@ -121,14 +130,13 @@ class VisiMisiFragment : Fragment() {
             return
         }
 
-        // Ambil Token
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: ""
 
         lifecycleScope.launch {
             try {
-                binding.btnSaveVisiMisi.isEnabled = false
-                binding.btnSaveVisiMisi.text = "Updating..."
+                // 1. Tampilkan Overlay
+                setLoading(true)
 
                 val response = ApiClient.instance.updateVisiMisi(
                     "Bearer $token",
@@ -144,8 +152,8 @@ class VisiMisiFragment : Fragment() {
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                binding.btnSaveVisiMisi.isEnabled = true
-                binding.btnSaveVisiMisi.text = "Simpan Perubahan"
+                // 2. Sembunyikan Overlay
+                setLoading(false)
             }
         }
     }

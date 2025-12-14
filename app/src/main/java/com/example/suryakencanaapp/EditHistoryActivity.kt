@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -24,6 +25,7 @@ class EditHistoryActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddHistoryBinding
     private lateinit var albumAdapter: AlbumImageAdapter
+    private var loadingDialog: AlertDialog? = null
 
     private var historyId: Int = 0
     private var selectedMainFile: File? = null
@@ -234,7 +236,20 @@ class EditHistoryActivity : AppCompatActivity() {
     }
 
     private fun setLoading(isLoading: Boolean) {
-        binding.btnSave.isEnabled = !isLoading
-        binding.btnSave.text = if (isLoading) "Updating..." else "Simpan Perubahan"
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSave.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSave.isEnabled = true
+        }
     }
 }

@@ -10,7 +10,8 @@ import java.util.Locale
 
 class AdminAdapter(
     private var adminList: List<Admin>,
-    private val onDeleteClick: (Admin) -> Unit
+    private val onDeleteClick: (Admin) -> Unit,
+    private val onEditClick: (Admin) -> Unit
 ) : RecyclerView.Adapter<AdminAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemAdminBinding) : RecyclerView.ViewHolder(binding.root)
@@ -30,22 +31,22 @@ class AdminAdapter(
             holder.binding.tvInitial.text = data.username.first().toString().uppercase()
         }
 
-        // Format Tanggal (Opsional: Agar lebih rapi)
-        // Input: 2025-12-05T02:09:30.092Z -> Output: 05 Dec 2025
         holder.binding.tvDate.text = formatDate(data.createdAt)
 
-        // Klik Hapus (Pastikan di XML item_admin ada tombol delete, misal ID btnDelete)
-        // Jika tidak ada tombol delete di card, bisa pakai onLongClick di itemView
-        holder.itemView.setOnClickListener {
-            // Opsional: Klik card untuk detail/hapus
-        }
-
-        // Jika Anda menambahkan tombol delete di layout XML item_admin:
-        /*
-        holder.btnDelete?.setOnClickListener {
+        // 1. KLIK TOMBOL HAPUS
+        holder.binding.btnDelete.setOnClickListener {
             onDeleteClick(data)
         }
-        */
+
+        // 2. KLIK TOMBOL EDIT
+        holder.binding.btnEdit.setOnClickListener {
+            onEditClick(data)
+        }
+
+        // 3. KLIK KARTU (Opsional: Edit juga)
+        holder.binding.root.setOnClickListener {
+            onEditClick(data)
+        }
     }
 
     override fun getItemCount() = adminList.size

@@ -48,6 +48,8 @@ class HistoryAdapter(
 
         // Klik Edit
         holder.binding.btnEdit.setOnClickListener { onEditClick(data) }
+
+        holder.binding.root.setOnClickListener { onEditClick(data) }
     }
 
     override fun getItemCount() = historyList.size

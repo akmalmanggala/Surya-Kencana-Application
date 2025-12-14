@@ -105,7 +105,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="🔒 Harga disembunyikan"
+                android:text="🔒 Harga disembunyikan di publik"
                 android:textSize="10sp"
                 android:textColor="#F57C00"
                 android:background="#FFF3E0"

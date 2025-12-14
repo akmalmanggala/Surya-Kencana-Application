@@ -18,8 +18,6 @@ import com.example.suryakencanaapp.adapter.HistoryAdapter
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentRiwayatBinding
 import com.example.suryakencanaapp.model.History
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class RiwayatFragment : Fragment() {
@@ -28,6 +26,7 @@ class RiwayatFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var historyAdapter: HistoryAdapter
     private var allHistoryList: List<History> = listOf()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +78,23 @@ class RiwayatFragment : Fragment() {
         fetchHistories()
     }
 
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(requireContext())
+                // Menggunakan layout_loading_dialog.xml yang sudah Anda buat sebelumnya
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa cancel sembarangan
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
+
     private fun setupSearchListener() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -127,12 +143,12 @@ class RiwayatFragment : Fragment() {
     }
 
     private fun fetchHistories() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHistories()
 
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val rawList = response.body()!!
 
                     allHistoryList = rawList.sortedByDescending { it.tahun }
@@ -146,7 +162,7 @@ class RiwayatFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e("HISTORY", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
@@ -166,6 +182,7 @@ class RiwayatFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
+                setLoading(true)
                 val response = ApiClient.instance.deleteHistory("Bearer $token", id)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Riwayat Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
@@ -175,6 +192,8 @@ class RiwayatFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
             }
         }
     }

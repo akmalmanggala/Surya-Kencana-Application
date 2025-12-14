@@ -1,273 +1,296 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_app"
-    android:fitsSystemWindows="true"
-    android:fillViewport="true">
+    android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:fitsSystemWindows="true"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Header with Back Button -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:src="@drawable/ic_arrow_back"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="#000000"
-                android:scaleType="centerInside"
-                android:padding="12dp"
-                android:contentDescription="Back"/>
-
-            <TextView
-                android:id="@+id/tvPageTitle"
-                android:text="Tambah Produk Baru"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"/>
-        </RelativeLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nama Produk"
-            android:layout_marginBottom="16dp"
-            app:boxStrokeColor="@color/brown_primary">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Harga (Rp)"
-            android:layout_marginBottom="16dp"
-            app:boxStrokeColor="@color/brown_primary">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPrice"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="24dp">
 
-        <!-- Checkbox Sembunyikan Harga -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#FFF9E6"
-            app:cardElevation="0dp"
-            app:strokeColor="#FFD54F"
-            app:strokeWidth="1dp"
-            app:cardCornerRadius="8dp">
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_arrow_back"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="#000000"
+                    android:scaleType="centerInside"
+                    android:padding="12dp"
+                    android:contentDescription="Back"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
-
-                <CheckBox
-                    android:id="@+id/cbHidePrice"
+                <TextView
+                    android:id="@+id/tvPageTitle"
+                    android:text="Tambah Produk Baru"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:buttonTint="@color/brown_primary"/>
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nama Produk *"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/brown_primary">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Harga (Rp) *"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/brown_primary">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FFF9E6"
+                app:cardElevation="0dp"
+                app:strokeColor="#FFD54F"
+                app:strokeWidth="1dp"
+                app:cardCornerRadius="8dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginStart="8dp">
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <CheckBox
+                            android:id="@+id/cbHidePrice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:buttonTint="@color/brown_primary"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sembunyikan harga"
+                                android:textStyle="bold"
+                                android:textSize="14sp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Centang jika ingin menyembunyikan harga"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvHiddenInfo"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Sembunyikan harga"
-                        android:textStyle="bold"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Harga tidak akan ditampilkan di halaman publik"
-                        android:textColor="@color/text_secondary"
+                        android:text="⚠ Harga akan disembunyikan di halaman publik"
+                        android:textColor="#D32F2F"
+                        android:textStyle="italic"
                         android:textSize="12sp"
-                        android:layout_marginTop="2dp"/>
+                        android:layout_marginTop="8dp"
+                        android:layout_marginStart="40dp"
+                        android:visibility="gone" />
                 </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Deskripsikan produk Anda..."
-            android:layout_marginBottom="24dp"
-            app:boxStrokeColor="@color/brown_primary">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etDesc"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:gravity="top"
-                android:inputType="textMultiLine"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:text="Gambar Produk *"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"/>
-
-        <LinearLayout
-            android:id="@+id/btnUploadImage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_dashed_border"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp"
-            android:layout_marginBottom="24dp"
-            >
-
-            <ImageView
-                android:id="@+id/imgUploadIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                app:tint="@color/brown_primary" />
-
-            <ImageView
-                android:id="@+id/imgPreviewReal"
-                android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:scaleType="fitCenter"
-                android:visibility="gone" />
+                android:layout_height="wrap_content"
+                android:hint="Deskripsi *"
+                android:layout_marginBottom="24dp"
+                app:boxStrokeColor="@color/brown_primary">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
-                android:id="@+id/tvUploadInfo"
+                android:text="Gambar Produk *"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Tekan untuk Mengupload Gambar"
-                android:textColor="@color/brown_primary"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvUploadInfo2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Max size: 100MB"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gambar Album (Opsional)"
-            android:layout_marginBottom="8dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_dashed_border"
-            android:padding="8dp">
+                android:layout_marginBottom="8dp"/>
 
             <LinearLayout
-                android:id="@+id/btnUploadAlbum"
+                android:id="@+id/btnUploadImage"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_dashed_border"
                 android:clickable="true"
                 android:focusable="true"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:layout_marginBottom="24dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:id="@+id/imgUploadIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
-                    app:tint="@color/brown_primary"/>
+                    app:tint="@color/brown_primary" />
+
+                <ImageView
+                    android:id="@+id/imgPreviewReal"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/tvUploadInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pilih Banyak Gambar"
+                    android:layout_marginTop="8dp"
+                    android:text="Tekan untuk Mengupload Gambar"
                     android:textColor="@color/brown_primary"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:text="Maks. 100MB per gambar"
-                    android:textSize="10sp"
-                    android:layout_marginTop="4dp"
+                    android:id="@+id/tvUploadInfo2"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:text="Max size: 100MB"
+                    android:textSize="10sp" />
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAlbumPreview"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gambar Album (Opsional)"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                android:visibility="gone" /> </LinearLayout>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_dashed_border"
+                android:padding="8dp">
 
-        <Space android:layout_width="match_parent" android:layout_height="32dp"/>
+                <LinearLayout
+                    android:id="@+id/btnUploadAlbum"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/upload_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                        app:tint="@color/brown_primary"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancel"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="Batal"
-                android:textStyle="bold"
-                app:cornerRadius="12dp"
-                app:strokeColor="#BDBDBD" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pilih Banyak Gambar"
+                        android:textColor="@color/brown_primary"
+                        android:textStyle="bold"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Tambah Produk"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                app:backgroundTint="@color/brown_primary"
-                app:cornerRadius="12dp" />
+                    <TextView
+                        android:text="Maks. 100MB per gambar"
+                        android:textSize="10sp"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvAlbumPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="110dp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="32dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="Batal"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="#BDBDBD" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSave"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Tambah Produk"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/brown_primary"
+                    app:cornerRadius="12dp" />
+            </LinearLayout>
+
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

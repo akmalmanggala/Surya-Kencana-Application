@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -25,102 +26,93 @@ class AddProductActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddProdukBinding
 
     private var selectedFile: File? = null
-    private val selectedAlbumFiles = mutableListOf<File>() // List file album
+    private val selectedAlbumFiles = mutableListOf<File>()
     private val selectedAlbumUris = mutableListOf<Uri>()
     private lateinit var albumAdapter: AlbumImageAdapter
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // 3. Inflate Layout menggunakan Binding
         binding = ActivityAddProdukBinding.inflate(layoutInflater)
-        setContentView(binding.root) // Set content view ke root milik binding
+        setContentView(binding.root)
 
-        // Inisialisasi tidak perlu findViewById lagi
         initViews()
         setupListeners()
     }
 
     private fun initViews() {
-        // Akses view langsung lewat 'binding.idView'
-        // Contoh: R.id.rvAlbumPreview otomatis jadi binding.rvAlbumPreview
-
         binding.rvAlbumPreview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-
         albumAdapter = AlbumImageAdapter(selectedAlbumUris) { position ->
             selectedAlbumUris.removeAt(position)
             selectedAlbumFiles.removeAt(position)
             albumAdapter.notifyItemRemoved(position)
-
             if (selectedAlbumUris.isEmpty()) {
                 binding.rvAlbumPreview.visibility = View.GONE
             }
         }
         binding.rvAlbumPreview.adapter = albumAdapter
+
+        binding.tvPageTitle.text = "Tambah Produk Baru"
     }
 
     private fun setupListeners() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnSave.setOnClickListener { uploadProduct() }
-        // Listener Gambar UTAMA (Single)
-        binding.btnUploadImage.setOnClickListener {
-            mainImageLauncher.launch("image/*")
-        }
+        binding.btnUploadImage.setOnClickListener { mainImageLauncher.launch("image/*") }
+        binding.btnUploadAlbum.setOnClickListener { albumImageLauncher.launch("image/*") }
 
-        // Listener Gambar ALBUM (Multiple)
-        binding.btnUploadAlbum.setOnClickListener {
-            albumImageLauncher.launch("image/*")
+        // --- FITUR BARU: Listener Checkbox ---
+        binding.cbHidePrice.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                binding.tvHiddenInfo.visibility = View.VISIBLE
+            } else {
+                binding.tvHiddenInfo.visibility = View.GONE
+            }
         }
-
     }
 
-    // --- LOGIC BUKA GALERI & TAMPILKAN PREVIEW ---
     private val mainImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            // Update UI Preview Utama
             binding.imgUploadIcon.visibility = View.GONE
             binding.imgPreviewReal.visibility = View.VISIBLE
             binding.imgPreviewReal.setImageURI(uri)
             binding.tvUploadInfo.text = "Gambar Utama Terpilih"
             binding.tvUploadInfo2.text = "Tekan lagi untuk mengganti gambar"
-
-            // Konversi ke File
             selectedFile = FileUtils.getFileFromUri(this, uri)
         }
     }
 
-    // --- 2. LAUNCHER GAMBAR ALBUM (BARU) ---
-    // Pakai: GetMultipleContents() -> Bisa pilih banyak
     private val albumImageLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
-            // Munculkan RecyclerView Album
             binding.rvAlbumPreview.visibility = View.VISIBLE
-
             for (uri in uris) {
-                // Konversi setiap gambar jadi File
                 val file = FileUtils.getFileFromUri(this, uri)
                 if (file != null) {
-                    selectedAlbumFiles.add(file) // Simpan File untuk diupload
-                    selectedAlbumUris.add(uri)   // Simpan URI untuk preview
+                    selectedAlbumFiles.add(file)
+                    selectedAlbumUris.add(uri)
                 }
             }
-
-            // Refresh Adapter Album
             albumAdapter.notifyDataSetChanged()
             Toast.makeText(this, "${uris.size} gambar ditambahkan", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // --- LOGIC UPLOAD (Sama seperti sebelumnya) ---
     private fun uploadProduct() {
         val name = binding.etName.text.toString().trim()
         val priceRaw = binding.etPrice.text.toString().trim()
         val desc = binding.etDesc.text.toString().trim()
+        val isHidden = binding.cbHidePrice.isChecked
 
-        // Validasi dasar (Main Image wajib, Album opsional)
-        if (name.isEmpty() || priceRaw.isEmpty() || desc.isEmpty() || selectedFile == null) {
-            Toast.makeText(this, "Data wajib (Nama, Harga, Deskripsi, Gambar Utama) belum lengkap!", Toast.LENGTH_SHORT).show()
+        // --- VALIDASI (Sesuai Logic Vue) ---
+        // Jika hidden, harga boleh kosong. Jika tidak hidden, harga wajib isi.
+        if (name.isEmpty() || desc.isEmpty() || selectedFile == null) {
+            Toast.makeText(this, "Nama, Deskripsi, dan Gambar Utama wajib diisi!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!isHidden && priceRaw.isEmpty()) {
+            Toast.makeText(this, "Harga wajib diisi (kecuali disembunyikan)!", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -128,53 +120,45 @@ class AddProductActivity : AppCompatActivity() {
         val token = sharedPref.getString("TOKEN", "") ?: return
         val authHeader = "Bearer $token"
 
-        val priceClean = priceRaw.replace(".", "").replace(",", "")
+        // Bersihkan harga (hapus titik/koma)
+        val priceClean = if (priceRaw.isNotEmpty()) {
+            priceRaw.replace(".", "").replace(",", "")
+        } else {
+            "0" // Default jika kosong (saat hidden)
+        }
 
         lifecycleScope.launch {
             try {
                 setLoading(true)
 
-                // 1. SIAPKAN DATA TEKS
                 val reqName = name.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqPrice = priceClean.toRequestBody("text/plain".toMediaTypeOrNull())
                 val reqDesc = desc.toRequestBody("text/plain".toMediaTypeOrNull())
-                
-                // Hide Price (0 = false, 1 = true)
-                val hidePrice = if (binding.cbHidePrice.isChecked) "1" else "0"
-                val reqHidePrice = hidePrice.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // 2. SIAPKAN GAMBAR UTAMA (selectedFile)
-                // Deteksi MimeType (PNG/JPG)
+                // Hide Price (0 = false, 1 = true)
+                val hidePriceStr = if (isHidden) "1" else "0"
+                val reqHidePrice = hidePriceStr.toRequestBody("text/plain".toMediaTypeOrNull())
+
                 val mimeTypeMain = if (selectedFile!!.extension.equals("png", true)) "image/png" else "image/jpeg"
                 val requestFile = selectedFile!!.asRequestBody(mimeTypeMain.toMediaTypeOrNull())
-
-                // Nama field: "image_path" (Sesuai Controller Laravel)
                 val bodyMainImage = MultipartBody.Part.createFormData("image_path", selectedFile!!.name, requestFile)
 
-                // 3. SIAPKAN GAMBAR ALBUM (Looping selectedAlbumFiles) --- [BAGIAN BARU] ---
                 val albumParts = mutableListOf<MultipartBody.Part>()
-
-                // 'selectedAlbumFiles' adalah list yang kita buat di langkah sebelumnya
                 for (file in selectedAlbumFiles) {
                     val mimeTypeAlbum = if (file.extension.equals("png", true)) "image/png" else "image/jpeg"
                     val reqFileAlbum = file.asRequestBody(mimeTypeAlbum.toMediaTypeOrNull())
-
-                    // PENTING: Nama field harus "images[]" (pakai kurung siku) agar dibaca Array oleh Laravel
                     val part = MultipartBody.Part.createFormData("images[]", file.name, reqFileAlbum)
-
                     albumParts.add(part)
                 }
-                // -------------------------------------------------------------------------
 
-                // 4. KIRIM KE API (Tambahkan parameter albumParts)
                 val response = ApiClient.instance.addProduct(
                     authHeader,
                     reqName,
                     reqPrice,
                     reqDesc,
-                    reqHidePrice, // TAMBAHAN: hide_price
+                    reqHidePrice,
                     bodyMainImage,
-                    if (albumParts.isEmpty()) null else albumParts // Kirim null jika tidak ada album
+                    if (albumParts.isEmpty()) null else albumParts
                 )
 
                 if (response.isSuccessful) {
@@ -183,7 +167,7 @@ class AddProductActivity : AppCompatActivity() {
                 } else {
                     val errorMsg = response.errorBody()?.string()
                     Log.e("UPLOAD_ERROR", errorMsg ?: "Unknown error")
-                    Toast.makeText(this@AddProductActivity, "Gagal: Cek Logcat", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddProductActivity, "Gagal: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
@@ -196,11 +180,19 @@ class AddProductActivity : AppCompatActivity() {
 
     private fun setLoading(isLoading: Boolean) {
         if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
             binding.btnSave.isEnabled = false
-            binding.btnSave.text = "Uploading..."
         } else {
+            loadingDialog?.dismiss()
             binding.btnSave.isEnabled = true
-            binding.btnSave.text = "Tambah Produk"
         }
     }
 }

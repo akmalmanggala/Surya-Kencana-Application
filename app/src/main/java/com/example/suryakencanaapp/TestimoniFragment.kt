@@ -26,6 +26,7 @@ class TestimoniFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var testimoniAdapter: TestimoniAdapter
     private var allTestimoniList: List<Testimoni> = listOf()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +68,23 @@ class TestimoniFragment : Fragment() {
         fetchTestimonies()
     }
 
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(requireContext())
+                // Menggunakan layout_loading_dialog.xml yang sudah Anda buat sebelumnya
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa cancel sembarangan
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
+
     private fun setupSearchListener() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -79,13 +97,11 @@ class TestimoniFragment : Fragment() {
         })
     }
 
-    // 3. Logika Filter Lokal (Nama, Instansi, atau Umpan Balik)
     private fun filterData(keyword: String) {
         val filteredList = if (keyword.isEmpty()) {
             allTestimoniList
         } else {
             allTestimoniList.filter {
-                // Menggunakan ?. dan == true untuk menangani data null
                 (it.clientName?.contains(keyword, ignoreCase = true) == true) ||
                         (it.institution?.contains(keyword, ignoreCase = true) == true) ||
                         (it.feedback?.contains(keyword, ignoreCase = true) == true)
@@ -94,19 +110,16 @@ class TestimoniFragment : Fragment() {
         updateListUI(filteredList, keyword)
     }
 
-    // 4. Update UI & Empty State
     private fun updateListUI(list: List<Testimoni>, keyword: String) {
+        // Cek _binding agar tidak crash jika fragment sudah tutup
+        if (_binding == null) return
+
         testimoniAdapter.updateData(list)
 
         if (list.isEmpty()) {
             binding.rvTestimoni.visibility = View.GONE
             binding.tvEmptyState.visibility = View.VISIBLE
-
-            if (keyword.isNotEmpty()) {
-                binding.tvEmptyState.text = "Testimoni tidak ditemukan"
-            } else {
-                binding.tvEmptyState.text = "Belum ada Testimoni"
-            }
+            binding.tvEmptyState.text = if (keyword.isNotEmpty()) "Testimoni tidak ditemukan" else "Belum ada Testimoni"
         } else {
             binding.rvTestimoni.visibility = View.VISIBLE
             binding.tvEmptyState.visibility = View.GONE
@@ -114,31 +127,34 @@ class TestimoniFragment : Fragment() {
     }
 
     private fun fetchTestimonies() {
-        binding.swipeRefresh.isRefreshing = true
+        // Gunakan Safe Call (?)
+        _binding?.swipeRefresh?.isRefreshing = true
 
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getTestimonies(null)
 
-                if (response.isSuccessful && response.body() != null) {
+                // Cek _binding != null sebelum update UI
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
-
                     allTestimoniList = listData.sortedByDescending { it.id }
 
-                    val currentKeyword = binding.etSearch.text.toString().trim()
+                    val currentKeyword = _binding?.etSearch?.text.toString().trim()
                     filterData(currentKeyword)
                 } else {
-                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    if (_binding != null) {
+                        Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("TESTIMONI_API", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                // PENTING: Gunakan _binding? agar tidak crash di blok finally
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
 
-    // ... (Fungsi delete tetap sama) ...
     private fun showDeleteConfirmation(data: Testimoni) {
         AlertDialog.Builder(requireContext())
             .setTitle("Hapus Testimoni")
@@ -146,8 +162,6 @@ class TestimoniFragment : Fragment() {
             .setPositiveButton("Hapus") { _, _ ->
                 data.id?.let { idPasti ->
                     deleteTestimoniApi(idPasti)
-                } ?: run {
-                    Toast.makeText(context, "Gagal: ID tidak ditemukan", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Batal", null)
@@ -156,22 +170,23 @@ class TestimoniFragment : Fragment() {
 
     private fun deleteTestimoniApi(id: Int) {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        val token = prefs.getString("TOKEN", "")
-
-        if (token.isNullOrEmpty()) return
+        val token = prefs.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
-                val response = ApiClient.instance.deleteTestimoni("Bearer $token", id)
+                setLoading(true)
 
+                val response = ApiClient.instance.deleteTestimoni("Bearer $token", id)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Testimoni Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
-                    fetchTestimonies() // Refresh data
+                    fetchTestimonies()
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoading(false)
             }
         }
     }

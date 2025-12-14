@@ -17,6 +17,7 @@ class KontakFragment : Fragment() {
 
     private var _binding: FragmentKontakBinding? = null
     private val binding get() = _binding!!
+    private var loadingDialog: android.app.AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,31 +54,52 @@ class KontakFragment : Fragment() {
         }
     }
 
+    // --- HELPER LOADING ---
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = android.app.AlertDialog.Builder(requireContext())
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa back
+                loadingDialog = builder.create()
+                // Agar background transparan (hanya card yang terlihat)
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSaveContact.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSaveContact.isEnabled = true
+        }
+    }
+
     private fun fetchContactData() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getContact()
 
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
 
                     if (listData.isNotEmpty()) {
                         val data = listData[0]
-
                         binding.etEmail.setText(data.email)
                         binding.etWhatsapp.setText(data.phone)
                         binding.etAddress.setText(data.address)
                         binding.etMaps.setText(data.mapUrl)
                     }
                 } else {
-                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    if (_binding != null)
+                        Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("CONTACT_API", "Error: ${e.message}")
-                Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
+                if (_binding != null)
+                    Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
@@ -88,20 +110,18 @@ class KontakFragment : Fragment() {
         val address = binding.etAddress.text.toString().trim()
         val maps = binding.etMaps.text.toString().trim()
 
-        // Validasi sederhana
         if (email.isEmpty() || phone.isEmpty() || address.isEmpty()) {
             Toast.makeText(context, "Email, WA, dan Alamat wajib diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Ambil Token
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: ""
 
         lifecycleScope.launch {
             try {
-                binding.btnSaveContact.isEnabled = false
-                binding.btnSaveContact.text = "Updating..."
+                // 1. Tampilkan Overlay
+                setLoading(true)
 
                 val response = ApiClient.instance.updateContact(
                     "Bearer $token",
@@ -114,7 +134,6 @@ class KontakFragment : Fragment() {
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Kontak Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Cek error message dari server jika ada
                     val errorMsg = response.errorBody()?.string()
                     Log.e("CONTACT_UPDATE", "Error: $errorMsg")
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -123,8 +142,8 @@ class KontakFragment : Fragment() {
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                binding.btnSaveContact.isEnabled = true
-                binding.btnSaveContact.text = "Simpan Perubahan"
+                // 2. Sembunyikan Overlay
+                setLoading(false)
             }
         }
     }

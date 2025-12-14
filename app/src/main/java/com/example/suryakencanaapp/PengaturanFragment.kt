@@ -30,6 +30,7 @@ class PengaturanFragment : Fragment() {
     private var _binding: FragmentPengaturanBinding? = null
     private val binding get() = _binding!!
     private var selectedLogoFile: File? = null
+    private var loadingDialog: android.app.AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,13 +59,33 @@ class PengaturanFragment : Fragment() {
         _binding = null
     }
 
+    // --- HELPER LOADING OVERLAY ---
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = android.app.AlertDialog.Builder(requireContext())
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false) // User tidak bisa back
+                loadingDialog = builder.create()
+                // Agar background transparan (hanya card yang terlihat)
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSaveSettings.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSaveSettings.isEnabled = true
+        }
+    }
+
     // --- GET DATA ---
     private fun fetchSettings() {
-        binding.swipeRefresh.isRefreshing = true
+        _binding?.swipeRefresh?.isRefreshing = true
         lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getSiteSettings()
-                if (response.isSuccessful && response.body() != null) {
+                if (_binding != null && response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
                     binding.etCompanyName.setText(data.companyName)
@@ -85,20 +106,18 @@ class PengaturanFragment : Fragment() {
 
                     if (!data.companyLogoUrl.isNullOrEmpty()) {
                         showPreview(true)
-
                         Glide.with(this@PengaturanFragment)
                             .load(data.companyLogoUrl)
                             .signature(ObjectKey(System.currentTimeMillis().toString()))
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(binding.imgLogoPreview)
-
                         binding.tvUploadInfo.text = "Logo Saat Ini (Ketuk untuk ganti)"
                     }
                 }
             } catch (e: Exception) {
                 Log.e("SETTINGS_API", "Error: ${e.message}")
             } finally {
-                binding.swipeRefresh.isRefreshing = false
+                _binding?.swipeRefresh?.isRefreshing = false
             }
         }
     }
@@ -110,8 +129,8 @@ class PengaturanFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                binding.btnSaveSettings.isEnabled = false
-                binding.btnSaveSettings.text = "Menyimpan..."
+                // 1. Tampilkan Overlay
+                setLoading(true)
 
                 val reqCompany = createPart(binding.etCompanyName)
                 val reqHeroT = createPart(binding.etHeroTitle)
@@ -131,26 +150,16 @@ class PengaturanFragment : Fragment() {
 
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // 2. Siapkan Logo (DENGAN DETEKSI FORMAT OTOMATIS)
                 var bodyLogo: MultipartBody.Part? = null
-
                 if (selectedLogoFile != null) {
-                    // Cek apakah file aslinya PNG atau JPG (dari FileUtils)
                     val isPng = selectedLogoFile!!.extension.equals("png", true)
-
-                    // Tentukan MimeType yang benar
                     val mimeType = if (isPng) "image/png" else "image/jpeg"
-
-                    // Tentukan Ekstensi nama file yang benar
                     val extension = if (isPng) "png" else "jpg"
                     val safeFileName = "company_logo_${System.currentTimeMillis()}.$extension"
-
-                    // Buat Request Body
                     val requestFile = selectedLogoFile!!.asRequestBody(mimeType.toMediaTypeOrNull())
                     bodyLogo = MultipartBody.Part.createFormData("company_logo", safeFileName, requestFile)
                 }
 
-                // 3. Kirim
                 val response = ApiClient.instance.updateSiteSettings(
                     "Bearer $token",
                     reqCompany, reqHeroT, reqHeroS,
@@ -166,31 +175,29 @@ class PengaturanFragment : Fragment() {
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Pengaturan Berhasil Disimpan!", Toast.LENGTH_SHORT).show()
-                    selectedLogoFile = null // Reset pilihan file
-                    fetchSettings() // Refresh tampilan
+                    selectedLogoFile = null
+                    fetchSettings()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("UPDATE_FAIL", "Error Server: $errorBody")
-                    Toast.makeText(context, "Gagal: ${response.code()} - Cek Logcat", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
 
             } catch (e: Exception) {
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 e.printStackTrace()
             } finally {
-                binding.btnSaveSettings.isEnabled = true
-                binding.btnSaveSettings.text = "Simpan Pengaturan"
+                // 2. Sembunyikan Overlay
+                setLoading(false)
             }
         }
     }
 
-    // --- UPLOAD GAMBAR ---
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             showPreview(true)
             binding.imgLogoPreview.setImageURI(uri)
             binding.tvUploadInfo.text = "Logo Baru Terpilih (Belum Disimpan)"
-
             selectedLogoFile = FileUtils.getFileFromUri(requireContext(), uri)
         }
     }

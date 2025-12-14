@@ -1,6 +1,8 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 class AddAdminActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddAdminBinding
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,14 +42,33 @@ class AddAdminActivity : AppCompatActivity() {
         }
     }
 
+    // --- HELPER LOADING ---
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.btnSave.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.btnSave.isEnabled = true
+        }
+    }
+
     private fun createAdmin(user: String, pass: String) {
         val sharedPref = getSharedPreferences("AppSession", MODE_PRIVATE)
         val token = sharedPref.getString("TOKEN", "") ?: return
 
         lifecycleScope.launch {
             try {
-                binding.btnSave.isEnabled = false
-                binding.btnSave.text = "Uploading..."
+                // 1. Tampilkan Overlay
+                setLoading(true)
 
                 val response = ApiClient.instance.addAdmin("Bearer $token", user, pass)
 
@@ -55,13 +77,12 @@ class AddAdminActivity : AppCompatActivity() {
                     finish()
                 } else {
                     Toast.makeText(this@AddAdminActivity, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    binding.btnSave.isEnabled = true
-                    binding.btnSave.text = "Tambah Admin"
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@AddAdminActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                binding.btnSave.isEnabled = true
-                binding.btnSave.text = "Tambah Admin"
+            } finally {
+                // 2. Sembunyikan Overlay
+                setLoading(false)
             }
         }
     }

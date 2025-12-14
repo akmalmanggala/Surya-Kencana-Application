@@ -17,6 +17,15 @@ object ApiClient {
         val mOkHttpClient = OkHttpClient
             .Builder()
             .addInterceptor(mHttpLoggingInterceptor)
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val request = original.newBuilder()
+                    .header("Accept", "application/json")
+                    .header("X-Device-Type", "mobile")
+                    .method(original.method, original.body)
+                    .build()
+                chain.proceed(request)
+            }
             // --- TAMBAHAN SETTING TIMEOUT (60 Detik) ---
             .connectTimeout(60, TimeUnit.SECONDS) // Waktu tunggu nyambung
             .readTimeout(60, TimeUnit.SECONDS)    // Waktu tunggu respon server
@@ -24,7 +33,6 @@ object ApiClient {
             .build()
 
         val retrofit = Retrofit.Builder()
-            // SAYA HAPUS 'api/' DI UJUNGNYA AGAR AMAN DARI ERROR 404
             .baseUrl("https://becompro.fizualstd.my.id/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(mOkHttpClient)

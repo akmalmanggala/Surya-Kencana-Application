@@ -51,14 +51,18 @@ interface ApiService {
     ): Response<Product>
 
     @Multipart
-    @POST("product") // atau "products" sesuai yang berhasil tadi
+    @POST("product")
     suspend fun addProduct(
-        @Header("Authorization") token: String, // <--- TAMBAHAN PENTING
+        @Header("Authorization") token: String,
         @Part("name") name: RequestBody,
         @Part("price") price: RequestBody,
         @Part("description") description: RequestBody,
-        @Part("hide_price") hidePrice: RequestBody, // TAMBAHAN: hide_price
+        @Part("hide_price") hidePrice: RequestBody, // Kirim "1" atau "0"
+
+        // Sesuaikan nama field dengan validasi Laravel: "image_path"
         @Part file: MultipartBody.Part,
+
+        // Sesuaikan nama field dengan loop Laravel: "images[]"
         @Part albumImages: List<MultipartBody.Part>?
     ): Response<Any>
 
@@ -70,14 +74,21 @@ interface ApiService {
         @Part("name") name: RequestBody,
         @Part("price") price: RequestBody,
         @Part("description") description: RequestBody,
-        @Part("hide_price") hidePrice: RequestBody, // TAMBAHAN: hide_price
-        @Part file: MultipartBody.Part?, // Gambar Utama (Boleh Null)
-        @Part newImages: List<MultipartBody.Part>?, // Tambah Album Baru
-        @Part deletedImages: List<MultipartBody.Part>?, // Hapus Album Lama
-        @Part("_method") method: RequestBody // "PUT"
+        @Part("hide_price") hidePrice: RequestBody,
+
+        // Gambar Utama (image_path)
+        @Part file: MultipartBody.Part?,
+
+        // Album Baru (images[])
+        @Part newImages: List<MultipartBody.Part>?,
+
+        // Album Dihapus (deleted_images[])
+        // Perhatikan tipe datanya, ini mengirim string path
+        @Part deletedImages: List<MultipartBody.Part>?,
+
+        @Part("_method") method: RequestBody // PUT
     ): Response<Any>
 
-    // DELETE PRODUK
     @DELETE("product/{id}")
     suspend fun deleteProduct(
         @Header("Authorization") token: String,
@@ -96,15 +107,15 @@ interface ApiService {
         @Field("client_name") clientName: String,
         @Field("institution") institution: String,
         @Field("feedback") feedback: String,
-        @Field("date") date: String // Format yyyy-mm-dd
-    ): Response<Any> // Mengembalikan response generic
+        @Field("date") date: String
+    ): Response<Any>
 
     @Headers("Accept: application/json")
     @FormUrlEncoded
-    @PUT("testimonial/{id}") // Menggunakan {id} sebagai path parameter
+    @PUT("testimonial/{id}")
     suspend fun updateTestimoni(
         @Header("Authorization") token: String,
-        @Path("id") id: Int, // ID dikirim lewat URL
+        @Path("id") id: Int,
         @Field("client_name") clientName: String,
         @Field("institution") institution: String,
         @Field("feedback") feedback: String,
@@ -146,7 +157,6 @@ interface ApiService {
     suspend fun addClient(
         @Header("Authorization") token: String,
         @Part("client_name") name: RequestBody,
-        @Part("institution") institution: RequestBody,
         @Part file: MultipartBody.Part
     ): Response<Any>
 
@@ -157,7 +167,6 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Int,
         @Part("client_name") name: RequestBody,
-        @Part("institution") institution: RequestBody,
         @Part file: MultipartBody.Part?, // Boleh Null (jika tidak ganti gambar)
         @Part("_method") method: RequestBody // Wajib isi "PUT"
     ): Response<Any>
@@ -305,5 +314,20 @@ interface ApiService {
         @Field("password") password: String
     ): Response<Any>
 
+    @DELETE("admin/{id}")
+    suspend fun deleteAdmin(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<Any>
+
+    @Multipart
+    @POST("admin/{id}") // Laravel Update via POST + _method=PUT
+    suspend fun updateAdmin(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int,
+        @Part("username") username: RequestBody,
+        @Part password: MultipartBody.Part?,
+        @Part("_method") method: RequestBody
+    ): Response<Any>
 
 }

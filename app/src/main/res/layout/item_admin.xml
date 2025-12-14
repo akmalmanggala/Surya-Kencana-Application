@@ -57,6 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginTop="12dp">
 
             <ImageView
@@ -71,8 +72,34 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="Dibuat: 7 November 2025"
+                android:layout_weight="1"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnEdit"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_circle_white"
+                    android:src="@drawable/edit_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    app:tint="@color/text_dark"
+                    android:padding="6dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <ImageButton
+                    android:id="@+id/btnDelete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_circle_white"
+                    android:src="@drawable/delete_24dp_ffffff_fill0_wght400_grad0_opsz24"
+                    app:tint="@color/danger_red"
+                    android:padding="6dp"/>
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
