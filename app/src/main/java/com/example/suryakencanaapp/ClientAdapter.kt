@@ -27,7 +27,6 @@ class ClientAdapter(
 
         with(holder.binding) {
             tvClientName.text = client.clientName
-            tvInstitution.text = client.institution
 
             if (!client.logoUrl.isNullOrEmpty()) {
                 Glide.with(root.context)

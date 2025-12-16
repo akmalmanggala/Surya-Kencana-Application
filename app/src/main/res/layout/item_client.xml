@@ -52,17 +52,6 @@
                     android:textColor="@color/text_dark"
                     android:maxLines="1"
                     android:ellipsize="end"/>
-
-                <TextView
-                    android:id="@+id/tvInstitution"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Nama Institusi"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_secondary"
-                    android:maxLines="2"
-                    android:ellipsize="end"/>
             </LinearLayout>
 
             <LinearLayout

@@ -1,5 +1,6 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog // Import AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,12 +18,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.example.suryakencanaapp.databinding.ActivityMainBinding // Binding Activity
-import com.example.suryakencanaapp.databinding.NavHeaderBinding   // Binding Header Sidebar
+import com.example.suryakencanaapp.databinding.ActivityMainBinding
+import com.example.suryakencanaapp.databinding.NavHeaderBinding
 
 class MainActivity : AppCompatActivity() {
 
-    // 1. Ganti variabel View lama dengan Binding
     private lateinit var binding: ActivityMainBinding
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
@@ -30,24 +30,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 2. Inflate menggunakan Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Akses Toolbar lewat binding
         setSupportActionBar(binding.toolbar)
 
-        // --- SETUP NAV CONTROLLER ---
-        // (Fragment Manager tetap butuh ID, bisa pakai R.id atau binding.id.id)
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // --- SETUP HEADER & ROLE ---
         setupHeaderAndRole()
 
-        // --- SETUP APP BAR CONFIGURATION ---
-        // Akses DrawerLayout lewat binding
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_dashboard, R.id.nav_produk, R.id.nav_klien, R.id.nav_testimoni,
@@ -59,7 +52,6 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navView.setupWithNavController(navController)
 
-        // --- [LISTENER] HIGHLIGHT MENU SAAT PINDAH HALAMAN ---
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val menuItem = findMenuItemInNav(binding.navView.menu, destination.id)
             if (menuItem != null) {
@@ -67,7 +59,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // --- CUSTOM NAVIGATION LISTENER ---
         binding.navView.setNavigationItemSelectedListener { item ->
             val id = item.itemId
 
@@ -97,12 +88,38 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // --- LOGOUT HANDLER ---
-        // Akses tombol logout lewat binding
+        // --- [MODIFIKASI] LOGOUT HANDLER ---
         binding.btnLogoutSidebar.setOnClickListener {
-            logout()
+            // Tutup drawer dulu agar rapi
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+            // Tampilkan dialog konfirmasi
+            showLogoutConfirmation()
         }
+    }
+
+    // --- FUNGSI DIALOG KONFIRMASI (BARU) ---
+    private fun showLogoutConfirmation() {
+        AlertDialog.Builder(this)
+            .setTitle("Konfirmasi Logout")
+            .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+            .setPositiveButton("Ya, Keluar") { _, _ ->
+                performLogout()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // --- FUNGSI EKSEKUSI LOGOUT ---
+    private fun performLogout() {
+        val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        sharedPref.edit().clear().apply()
+
+        Toast.makeText(this, "Berhasil Keluar", Toast.LENGTH_SHORT).show()
+
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun findMenuItemInNav(menu: Menu, targetId: Int): MenuItem? {
@@ -126,8 +143,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupHeaderAndRole() {
-        // Akses Header View menggunakan Binding khusus Header
-        // (Pastikan nav_header.xml valid agar NavHeaderBinding ter-generate)
         val headerView = binding.navView.getHeaderView(0)
         val headerBinding = NavHeaderBinding.bind(headerView)
 
@@ -135,12 +150,10 @@ class MainActivity : AppCompatActivity() {
         val userRoleRaw = sharedPref.getString("ROLE", "") ?: ""
         val username = sharedPref.getString("USERNAME", "Admin")
 
-        // Logic Admin Menu
         val menu = binding.navView.menu
         val adminMenu = menu.findItem(R.id.nav_admin_management)
         adminMenu?.isVisible = userRoleRaw.equals("superadmin", ignoreCase = true)
 
-        // Set Text lewat Header Binding
         headerBinding.tvHeaderName.text = "Halo, $username"
 
         val formattedRole = if (userRoleRaw.isNotEmpty()) {
@@ -153,17 +166,5 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
-
-    private fun logout() {
-        val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        sharedPref.edit().clear().apply()
-
-        Toast.makeText(this, "Berhasil Keluar", Toast.LENGTH_SHORT).show()
-
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 }

@@ -151,7 +151,8 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDesc"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="wrap_content"
+                    android:minLines="4"
                     android:gravity="top"
                     android:inputType="textMultiLine"/>
             </com.google.android.material.textfield.TextInputLayout>
