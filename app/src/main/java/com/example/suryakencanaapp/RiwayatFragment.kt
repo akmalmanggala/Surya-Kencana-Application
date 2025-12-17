@@ -19,7 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentRiwayatBinding
 import com.example.suryakencanaapp.model.History
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class RiwayatFragment : Fragment() {
 
@@ -145,7 +145,7 @@ class RiwayatFragment : Fragment() {
 
     private fun fetchHistories() {
         _binding?.swipeRefresh?.isRefreshing = true
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHistories()
 
@@ -181,7 +181,7 @@ class RiwayatFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
                 val response = ApiClient.instance.deleteHistory("Bearer $token", id)

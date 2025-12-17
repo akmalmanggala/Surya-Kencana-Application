@@ -24,7 +24,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class HeroFragment : Fragment() {
 
@@ -91,7 +91,7 @@ class HeroFragment : Fragment() {
 
     private fun fetchHeroData() {
         _binding?.swipeRefresh?.isRefreshing = true
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getHero()
                 if (_binding != null && response.isSuccessful && response.body() != null) {
@@ -151,7 +151,7 @@ class HeroFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
 

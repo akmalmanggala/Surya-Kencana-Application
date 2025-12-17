@@ -19,7 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentKlienBinding
 import com.example.suryakencanaapp.model.Client
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class KlienFragment : Fragment() {
 
@@ -134,7 +134,7 @@ class KlienFragment : Fragment() {
         // Gunakan Safe Call (?)
         _binding?.swipeRefresh?.isRefreshing = true
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getClients(null)
 
@@ -175,7 +175,7 @@ class KlienFragment : Fragment() {
 
         if (token.isNullOrEmpty()) return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
                 val response = ApiClient.instance.deleteClient("Bearer $token", id)

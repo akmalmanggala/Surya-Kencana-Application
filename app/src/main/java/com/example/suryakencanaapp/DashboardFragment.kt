@@ -134,16 +134,12 @@ class DashboardFragment : Fragment() {
     }
 
     private fun fetchDashboardData() {
-        // 1. Ambil Token dulu dari SharedPreferences
-        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        val token = prefs.getString("TOKEN", "") ?: return
 
         _binding?.swipeRefresh?.isRefreshing = true
 
         // 2. Gunakan viewLifecycleOwner agar aman
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // 3. Masukkan Token ke dalam request API
                 val response = ApiClient.instance.getDashboardData()
 
                 // Cek _binding agar tidak crash jika user sudah pindah layar

@@ -17,7 +17,7 @@ import com.example.suryakencanaapp.databinding.FragmentVisiMisiBinding
 import kotlinx.coroutines.launch
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class VisiMisiFragment : Fragment() {
 

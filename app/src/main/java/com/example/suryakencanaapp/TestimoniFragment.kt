@@ -19,7 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentTestimoniBinding
 import com.example.suryakencanaapp.model.Testimoni
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class TestimoniFragment : Fragment() {
 
@@ -131,7 +131,7 @@ class TestimoniFragment : Fragment() {
         // Gunakan Safe Call (?)
         _binding?.swipeRefresh?.isRefreshing = true
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getTestimonies(null)
 
@@ -173,7 +173,7 @@ class TestimoniFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
 

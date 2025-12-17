@@ -19,7 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentAdminBinding
 import com.example.suryakencanaapp.model.Admin
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class AdminFragment : Fragment() {
 
@@ -136,7 +136,7 @@ class AdminFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 // Ambil semua data (null) lalu filter lokal
                 val response = ApiClient.instance.getAdmins("Bearer $token", null)
@@ -171,7 +171,7 @@ class AdminFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
                 val response = ApiClient.instance.deleteAdmin("Bearer $token", id)

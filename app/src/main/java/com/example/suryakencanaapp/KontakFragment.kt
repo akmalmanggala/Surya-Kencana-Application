@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentKontakBinding
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class KontakFragment : Fragment() {
 

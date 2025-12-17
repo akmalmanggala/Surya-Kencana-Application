@@ -19,7 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentProductBinding // Import Binding Fragment
 import com.example.suryakencanaapp.model.Product
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class ProductFragment : Fragment() { // Hapus constructor R.layout...
 
@@ -187,7 +187,7 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 setLoading(true)
                 val response = ApiClient.instance.deleteProduct("Bearer $token", id)
