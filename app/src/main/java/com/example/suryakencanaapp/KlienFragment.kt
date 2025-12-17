@@ -19,6 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentKlienBinding
 import com.example.suryakencanaapp.model.Client
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class KlienFragment : Fragment() {
 
@@ -181,12 +182,17 @@ class KlienFragment : Fragment() {
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Klien Berhasil Dihapus!", Toast.LENGTH_SHORT).show()
-                    fetchClients() // Refresh data
+                    fetchClients()
                 } else {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // --- PERBAIKAN POIN 2 ---
+                if (e is CancellationException) {
+                    // Diamkan saja (User menekan tombol Back / Keluar)
+                } else {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 setLoading(false)
             }

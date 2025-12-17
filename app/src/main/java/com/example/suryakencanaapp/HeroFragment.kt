@@ -24,6 +24,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 class HeroFragment : Fragment() {
 
@@ -152,9 +153,9 @@ class HeroFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // 1. Tampilkan Overlay Loading
                 setLoading(true)
 
+                // ... (Bagian pembuatan MultipartBody tetap sama, tidak perlu diubah) ...
                 val location = createPart(binding.etLocation.text.toString())
                 val title = createPart(binding.etHeroTitle.text.toString())
                 val machine = createPart(binding.etStatMachine.text.toString())
@@ -166,16 +167,12 @@ class HeroFragment : Fragment() {
                 val newImagesList = if (newImageFile != null) {
                     val reqFile = newImageFile.asRequestBody("image/*".toMediaTypeOrNull())
                     listOf(MultipartBody.Part.createFormData("backgrounds[]", newImageFile.name, reqFile))
-                } else {
-                    null
-                }
+                } else { null }
 
                 val deletedImagesList = if (deletedPath != null) {
                     val pathBody = createPart(deletedPath)
                     listOf(MultipartBody.Part.createFormData("deleted_backgrounds[]", null, pathBody))
-                } else {
-                    null
-                }
+                } else { null }
 
                 val response = ApiClient.instance.updateHero(
                     "Bearer $token",
@@ -204,10 +201,19 @@ class HeroFragment : Fragment() {
                 }
 
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                Log.e("HERO_UPDATE", "Exception: ${e.message}")
+                // --- PERBAIKAN POIN 2 ---
+                if (e is CancellationException) {
+                    // Ignore (User membatalkan proses)
+                } else {
+                    val exMsg = when (actionType) {
+                        "upload_image" -> "Error Upload: ${e.message}"
+                        "delete_image" -> "Error Hapus: ${e.message}"
+                        else -> "Error Simpan: ${e.message}"
+                    }
+                    Toast.makeText(context, exMsg, Toast.LENGTH_SHORT).show()
+                    Log.e("HERO_UPDATE", "Exception: ${e.message}")
+                }
             } finally {
-                // 2. Sembunyikan Overlay
                 setLoading(false)
             }
         }

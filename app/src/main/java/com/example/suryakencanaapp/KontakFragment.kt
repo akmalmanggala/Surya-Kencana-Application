@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentKontakBinding
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class KontakFragment : Fragment() {
 
@@ -76,13 +77,11 @@ class KontakFragment : Fragment() {
 
     private fun fetchContactData() {
         _binding?.swipeRefresh?.isRefreshing = true
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getContact()
-
                 if (_binding != null && response.isSuccessful && response.body() != null) {
                     val listData = response.body()!!
-
                     if (listData.isNotEmpty()) {
                         val data = listData[0]
                         binding.etEmail.setText(data.email)
@@ -90,14 +89,13 @@ class KontakFragment : Fragment() {
                         binding.etAddress.setText(data.address)
                         binding.etMaps.setText(data.mapUrl)
                     }
-                } else {
-                    if (_binding != null)
-                        Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("CONTACT_API", "Error: ${e.message}")
-                if (_binding != null)
-                    Toast.makeText(context, "Error koneksi", Toast.LENGTH_SHORT).show()
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Log.e("CONTACT_API", "Error: ${e.message}")
+                }
             } finally {
                 _binding?.swipeRefresh?.isRefreshing = false
             }
@@ -118,31 +116,23 @@ class KontakFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: ""
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // 1. Tampilkan Overlay
                 setLoading(true)
-
-                val response = ApiClient.instance.updateContact(
-                    "Bearer $token",
-                    email,
-                    phone,
-                    address,
-                    maps
-                )
+                val response = ApiClient.instance.updateContact("Bearer $token", email, phone, address, maps)
 
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Kontak Berhasil Diperbarui!", Toast.LENGTH_SHORT).show()
                 } else {
-                    val errorMsg = response.errorBody()?.string()
-                    Log.e("CONTACT_UPDATE", "Error: $errorMsg")
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
-
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
-                // 2. Sembunyikan Overlay
                 setLoading(false)
             }
         }

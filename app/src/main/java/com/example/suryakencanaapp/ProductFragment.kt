@@ -19,6 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentProductBinding // Import Binding Fragment
 import com.example.suryakencanaapp.model.Product
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class ProductFragment : Fragment() { // Hapus constructor R.layout...
 
@@ -153,14 +154,20 @@ class ProductFragment : Fragment() { // Hapus constructor R.layout...
 
                 if (_binding != null && response.isSuccessful && response.body() != null) {
                     allProductList = response.body()!!.sortedByDescending { it.id }
-
                     val currentKeyword = binding.etSearch.text.toString().trim()
                     filterData(currentKeyword)
                 } else {
-                    Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    if (_binding != null)
+                        Toast.makeText(context, "Gagal memuat: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error: ${e.message}", e)
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Log.e("API_ERROR", "Error: ${e.message}", e)
+                    if (_binding != null)
+                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 _binding?.swipeRefresh?.isRefreshing = false
             }

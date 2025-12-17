@@ -24,6 +24,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 class PengaturanFragment : Fragment() {
 
@@ -82,7 +83,7 @@ class PengaturanFragment : Fragment() {
     // --- GET DATA ---
     private fun fetchSettings() {
         _binding?.swipeRefresh?.isRefreshing = true
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch { // Gunakan viewLifecycleOwner
             try {
                 val response = ApiClient.instance.getSiteSettings()
                 if (_binding != null && response.isSuccessful && response.body() != null) {
@@ -106,16 +107,17 @@ class PengaturanFragment : Fragment() {
 
                     if (!data.companyLogoUrl.isNullOrEmpty()) {
                         showPreview(true)
-                        Glide.with(this@PengaturanFragment)
-                            .load(data.companyLogoUrl)
+                        Glide.with(this@PengaturanFragment).load(data.companyLogoUrl)
                             .signature(ObjectKey(System.currentTimeMillis().toString()))
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .into(binding.imgLogoPreview)
-                        binding.tvUploadInfo.text = "Logo Saat Ini (Ketuk untuk ganti)"
+                            .diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.imgLogoPreview)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("SETTINGS_API", "Error: ${e.message}")
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Log.e("SETTINGS_API", "Error: ${e.message}")
+                }
             } finally {
                 _binding?.swipeRefresh?.isRefreshing = false
             }
@@ -127,11 +129,10 @@ class PengaturanFragment : Fragment() {
         val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
         val token = prefs.getString("TOKEN", "") ?: return
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch { // Gunakan viewLifecycleOwner
             try {
-                // 1. Tampilkan Overlay
                 setLoading(true)
-
+                // ... (Kode pembuatan RequestBody tetap sama) ...
                 val reqCompany = createPart(binding.etCompanyName)
                 val reqHeroT = createPart(binding.etHeroTitle)
                 val reqHeroS = createPart(binding.etHeroSubtitle)
@@ -147,30 +148,18 @@ class PengaturanFragment : Fragment() {
                 val reqTesT = createPart(binding.etTestiTitle)
                 val reqConL = createPart(binding.etContactLabel)
                 val reqConT = createPart(binding.etContactTitle)
-
                 val reqMethod = "PUT".toRequestBody("text/plain".toMediaTypeOrNull())
 
                 var bodyLogo: MultipartBody.Part? = null
                 if (selectedLogoFile != null) {
-                    val isPng = selectedLogoFile!!.extension.equals("png", true)
-                    val mimeType = if (isPng) "image/png" else "image/jpeg"
-                    val extension = if (isPng) "png" else "jpg"
-                    val safeFileName = "company_logo_${System.currentTimeMillis()}.$extension"
-                    val requestFile = selectedLogoFile!!.asRequestBody(mimeType.toMediaTypeOrNull())
-                    bodyLogo = MultipartBody.Part.createFormData("company_logo", safeFileName, requestFile)
+                    val requestFile = selectedLogoFile!!.asRequestBody("image/*".toMediaTypeOrNull())
+                    bodyLogo = MultipartBody.Part.createFormData("company_logo", selectedLogoFile!!.name, requestFile)
                 }
 
                 val response = ApiClient.instance.updateSiteSettings(
-                    "Bearer $token",
-                    reqCompany, reqHeroT, reqHeroS,
-                    reqVisL, reqVisT,
-                    reqProdL, reqProdT,
-                    reqCliL, reqCliT,
-                    reqHisL, reqHisT,
-                    reqTesL, reqTesT,
-                    reqConL, reqConT,
-                    bodyLogo,
-                    reqMethod
+                    "Bearer $token", reqCompany, reqHeroT, reqHeroS, reqVisL, reqVisT,
+                    reqProdL, reqProdT, reqCliL, reqCliT, reqHisL, reqHisT,
+                    reqTesL, reqTesT, reqConL, reqConT, bodyLogo, reqMethod
                 )
 
                 if (response.isSuccessful) {
@@ -178,16 +167,15 @@ class PengaturanFragment : Fragment() {
                     selectedLogoFile = null
                     fetchSettings()
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("UPDATE_FAIL", "Error Server: $errorBody")
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
-
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                e.printStackTrace()
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
-                // 2. Sembunyikan Overlay
                 setLoading(false)
             }
         }

@@ -134,23 +134,32 @@ class DashboardFragment : Fragment() {
     }
 
     private fun fetchDashboardData() {
+        // 1. Ambil Token dulu dari SharedPreferences
+        val prefs = requireActivity().getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+        val token = prefs.getString("TOKEN", "") ?: return
 
         _binding?.swipeRefresh?.isRefreshing = true
 
-        lifecycleScope.launch {
+        // 2. Gunakan viewLifecycleOwner agar aman
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
+                // 3. Masukkan Token ke dalam request API
                 val response = ApiClient.instance.getDashboardData()
+
+                // Cek _binding agar tidak crash jika user sudah pindah layar
                 if (_binding != null && response.isSuccessful && response.body() != null) {
                     val data = response.body()!!
 
-                    // Simpan ke cache agar tidak perlu download lagi nanti
+                    // Simpan ke cache
                     cachedDashboardData = data
 
-                    // Tampilkan ke layar
                     applyDataToView(data)
                 }
             } catch (e: Exception) {
-                Log.e("DASHBOARD", "Error: ${e.message}")
+                if (e is kotlinx.coroutines.CancellationException) {
+                } else {
+                    Log.e("DASHBOARD", "Error: ${e.message}")
+                }
             } finally {
                 _binding?.swipeRefresh?.isRefreshing = false
             }

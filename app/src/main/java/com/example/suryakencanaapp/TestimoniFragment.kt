@@ -19,6 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentTestimoniBinding
 import com.example.suryakencanaapp.model.Testimoni
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class TestimoniFragment : Fragment() {
 
@@ -184,7 +185,12 @@ class TestimoniFragment : Fragment() {
                     Toast.makeText(context, "Gagal hapus: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // --- PERBAIKAN POIN 2 ---
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 setLoading(false)
             }

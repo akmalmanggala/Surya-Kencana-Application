@@ -19,6 +19,7 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.FragmentRiwayatBinding
 import com.example.suryakencanaapp.model.History
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class RiwayatFragment : Fragment() {
 
@@ -191,7 +192,12 @@ class RiwayatFragment : Fragment() {
                     Toast.makeText(context, "Gagal: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // --- PERBAIKAN POIN 2 ---
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 setLoading(false)
             }
