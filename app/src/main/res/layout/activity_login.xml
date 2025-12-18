@@ -5,37 +5,32 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/brown_dark"> <com.google.android.material.card.MaterialCardView
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_marginHorizontal="32dp"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:background="@color/brown_dark">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:padding="16dp"
             android:src="@drawable/logo"
+            android:background="@drawable/bg_circle_white"
             android:layout_marginBottom="16dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Selamat Datang"
-            android:textColor="@color/text_dark"
+            android:textColor="@color/background_app"
             android:textSize="28sp"
             android:textStyle="bold" />
 
@@ -43,9 +38,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="32dp"
             android:text="Silakan login untuk melanjutkan"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/background_app"
             android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -54,15 +49,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="Username"
-            app:boxStrokeColor="@color/brown_primary"
-            app:hintTextColor="@color/brown_primary">
+
+            app:hintEnabled="false"
+
+            app:boxBackgroundColor="@color/white"
+            app:boxStrokeColor="@color/brown_dark"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etUsername"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
+
+                android:hint="Username"
+                android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_dark" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -72,9 +74,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:hint="Password"
-            app:boxStrokeColor="@color/brown_primary"
-            app:hintTextColor="@color/brown_primary"
+
+            app:hintEnabled="false"
+
+            app:boxBackgroundColor="@color/white"
+            app:boxStrokeColor="@color/brown_dark"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+
             app:endIconMode="password_toggle"
             app:endIconTint="@color/text_secondary">
 
@@ -83,32 +90,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
+
+                android:hint="Password"
+                android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_dark" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogin"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="LOGIN"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:backgroundTint="@color/brown_primary"
-            app:cornerRadius="8dp" />
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="2dp"
+            app:backgroundTint="@color/brown_dark" />
     </LinearLayout>
-
-</com.google.android.material.card.MaterialCardView>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:indeterminateTint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:elevation="10dp"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

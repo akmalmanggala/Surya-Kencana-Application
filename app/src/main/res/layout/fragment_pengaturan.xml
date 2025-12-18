@@ -5,6 +5,7 @@
     android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -50,8 +51,13 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Company Name">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Company Name"
+                    app:boxStrokeColor="@color/brown_primary">
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCompanyName"
                         android:layout_width="match_parent"
@@ -120,8 +126,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Hero Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Hero Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHeroTitle"
                         android:layout_width="match_parent"
@@ -129,8 +139,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Hero Subtitle">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Hero Subtitle"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHeroSubtitle"
                         android:layout_width="match_parent"
@@ -142,8 +156,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etVisionLabel"
                         android:layout_width="match_parent"
@@ -151,8 +169,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etVisionTitle"
                         android:layout_width="match_parent"
@@ -164,8 +186,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etProductLabel"
                         android:layout_width="match_parent"
@@ -173,8 +199,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etProductTitle"
                         android:layout_width="match_parent"
@@ -186,8 +216,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etClientLabel"
                         android:layout_width="match_parent"
@@ -195,8 +229,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etClientTitle"
                         android:layout_width="match_parent"
@@ -208,8 +246,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHistoryLabel"
                         android:layout_width="match_parent"
@@ -217,8 +259,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHistoryTitle"
                         android:layout_width="match_parent"
@@ -230,8 +276,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etTestiLabel"
                         android:layout_width="match_parent"
@@ -239,8 +289,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etTestiTitle"
                         android:layout_width="match_parent"
@@ -252,8 +306,12 @@
                     style="@style/SectionHeaderStyle"/>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Label">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Label"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etContactLabel"
                         android:layout_width="match_parent"
@@ -261,8 +319,12 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/BoxInputStyle"
-                    android:hint="Title">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Title"
+                    app:boxStrokeColor="@color/brown_primary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etContactTitle"
                         android:layout_width="match_parent"
@@ -282,5 +344,7 @@
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

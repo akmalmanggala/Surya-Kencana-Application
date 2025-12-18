@@ -136,8 +136,6 @@ class DashboardFragment : Fragment() {
     private fun fetchDashboardData() {
 
         _binding?.swipeRefresh?.isRefreshing = true
-
-        // 2. Gunakan viewLifecycleOwner agar aman
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = ApiClient.instance.getDashboardData()

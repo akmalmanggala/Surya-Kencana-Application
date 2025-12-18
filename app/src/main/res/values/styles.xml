@@ -14,8 +14,8 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginBottom">12dp</item>
-        <item name="boxStrokeColor">@color/brown_primary</item>
+        <item name="boxStrokeColor">@color/background_app</item>
         <item name="boxStrokeWidth">1dp</item>
-        <item name="boxBackgroundColor">@color/white</item>
+        <item name="boxBackgroundColor">@color/background_app</item>
     </style>
 </resources>

@@ -1,9 +1,9 @@
 package com.example.suryakencanaapp
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,97 +11,103 @@ import com.example.suryakencanaapp.api.ApiClient
 import com.example.suryakencanaapp.databinding.ActivityLoginBinding
 import com.example.suryakencanaapp.model.LoginRequest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
+    private var loadingDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // 1. Langsung Cek Session (Tanpa Delay)
+        // Cek sesi login
         val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        val token = sharedPref.getString("TOKEN", null)
-
-        if (token != null) {
+        if (sharedPref.contains("TOKEN")) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
 
-        // 2. Jika belum login, tampilkan layar
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         binding.btnLogin.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
-            if (username.isNotEmpty() && password.isNotEmpty()) {
-                binding.progressBar.visibility = View.VISIBLE
-                binding.btnLogin.text = "Loading..."
-                binding.btnLogin.isClickable = false
-
-                performLogin(username, password)
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Harap isi semua kolom", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "Wajib diisi", Toast.LENGTH_SHORT).show()
+                performLogin(username, password)
             }
         }
     }
 
-    private fun performLogin(username: String, pass: String) {
+    private fun setLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (loadingDialog == null) {
+                val builder = AlertDialog.Builder(this)
+                val view = layoutInflater.inflate(R.layout.layout_loading_dialog, null)
+                builder.setView(view)
+                builder.setCancelable(false)
+                loadingDialog = builder.create()
+                loadingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            }
+            loadingDialog?.show()
+            binding.etUsername.isEnabled = false
+            binding.etPassword.isEnabled = false
+            binding.btnLogin.isEnabled = false
+        } else {
+            loadingDialog?.dismiss()
+            binding.etUsername.isEnabled = true
+            binding.etPassword.isEnabled = true
+            binding.btnLogin.isEnabled = true
+        }
+    }
+
+    private fun performLogin(user: String, pass: String) {
         lifecycleScope.launch {
             try {
-                val request = LoginRequest(username, pass)
+                setLoading(true)
+
+                val request = LoginRequest(user, pass)
                 val response = ApiClient.instance.login(request)
 
-                // Jika response sukses (HTTP 200-299)
                 if (response.isSuccessful && response.body() != null) {
-                    val body = response.body()!!
-                    Toast.makeText(this@LoginActivity, "Halo, ${body.adminData.username}", Toast.LENGTH_LONG).show()
+                    val loginResponse = response.body()!!
 
-                    saveSession(body.token, body.adminData.role, body.adminData.username)
+                    // 1. Ambil Token
+                    val token = loginResponse.token
 
+                    // 2. Ambil Role (PERBAIKAN UTAMA DI SINI)
+                    // Mengakses 'adminData' sesuai nama di LoginResponse.kt
+                    val role = loginResponse.adminData.role
+
+                    // 3. Simpan ke SharedPreferences
+                    val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putString("TOKEN", token)
+                        putString("ROLE", role)
+                        apply()
+                    }
+
+                    Toast.makeText(this@LoginActivity, "Login Berhasil", Toast.LENGTH_SHORT).show()
+
+                    // Pindah ke MainActivity
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()
                 } else {
-                    // Jika response TIDAK sukses (misal: 401, 404, 500)
-                    // Kita akan bedakan pesannya di sini
-                    when (response.code()) {
-                        401, 422 -> {
-                            // 401 (Unauthorized) atau 422 (Unprocessable Entity) -> Umumnya karena data salah
-                            Toast.makeText(this@LoginActivity, "Username atau Password salah", Toast.LENGTH_SHORT).show()
-                        }
-                        500 -> {
-                            // 500 (Internal Server Error) -> Server mengalami masalah
-                            Toast.makeText(this@LoginActivity, "Terjadi masalah pada server", Toast.LENGTH_SHORT).show()
-                        }
-                        else -> {
-                            // Error lainnya (misal: 404 Not Found)
-                            Toast.makeText(this@LoginActivity, "Error tidak diketahui: ${response.message()}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    Toast.makeText(this@LoginActivity, "Login Gagal: Cek Username/Password", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                // Blok ini dieksekusi jika ada masalah koneksi (misal: tidak ada internet, server mati)
-                Toast.makeText(this@LoginActivity, "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.", Toast.LENGTH_LONG).show()
+                if (e is CancellationException) {
+                    // Ignore
+                } else {
+                    Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
-                // Blok ini akan selalu dijalankan, baik sukses maupun gagal
-                binding.progressBar.visibility = View.GONE
-                binding.btnLogin.text = "LOGIN"
-                binding.btnLogin.isClickable = true
+                setLoading(false)
             }
-        }
-    }
-
-    private fun saveSession(token: String, role: String?, username: String) {
-        val sharedPref = getSharedPreferences("AppSession", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("TOKEN", token)
-            putString("ROLE", role)
-            putString("USERNAME", username)
-            putBoolean("IS_LOGGED_IN", true)
-            apply()
         }
     }
 }
